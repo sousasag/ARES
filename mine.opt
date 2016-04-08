@@ -1,11 +1,12 @@
 specfits='sun_harps_ganymede.fits'
 readlinedat='linelist.dat'
-fileout='test.cmine'
+fileout='test.ares'
 lambdai=3600.
 lambdaf=9000.
 smoothder=4
 space=3.0
-rejt=-2
+rejt=0.995
 lineresol=0.1
 miniline=2
 plots_flag=0
+rvmask='3,6021.8,6024.06,6027.06,6024.06,20'
