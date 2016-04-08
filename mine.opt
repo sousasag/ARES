@@ -8,4 +8,4 @@ space=3.0
 rejt=-2
 lineresol=0.1
 miniline=2
-plots_flag=1
+plots_flag=0
