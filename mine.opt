@@ -1,0 +1,11 @@
+specfits='sun_harps_ganymede.fits'
+readlinedat='linelist.dat'
+fileout='test.cmine'
+lambdai=3600.
+lambdaf=9000.
+smoothder=4
+space=3.0
+rejt=-2
+lineresol=0.1
+miniline=2
+plots_flag=1
