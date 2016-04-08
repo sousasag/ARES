@@ -55,7 +55,7 @@ int main() {
 
 
     FILE * pFile3;
-    int status2; 
+    int status2; int flagrm=0;
 
     long npoints;
     double *pixels, *xpixels, cdelta1, crval1;
@@ -79,6 +79,10 @@ int main() {
     if (plots_flag == 2)  {
             plots_flag=1;
             plots_stop=1;
+    }
+
+    if (plots_flag == 1) {
+            flagrm = 1;
     }
 
     printf("File: %s\n", filetest);
@@ -180,7 +184,9 @@ int main() {
 
 
 //  Some free memory
-    system("rm tmp tmp2 tmp3 tmp20 tmp22 tmp23");
+    if (flagrm == 1) {
+      system("rm tmp tmp2 tmp3 tmp20 tmp22 tmp23");
+    }
     free(pixels);
     free(xpixels);
     
