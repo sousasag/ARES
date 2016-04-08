@@ -56,12 +56,12 @@ and is avaiable [here](http://www.eso.org/sci/facilities/lasilla/instruments/har
 
 ## 2. System requirements
 
-cfitsio	- [CFITSIO](http://heasarc.nasa.gov/fitsio/fitsio.html)
-gcc	- [GNU Compiler Collection](http://gcc.gnu.org/)
-gsl - [GNU Scientific Library](http://www.gnu.org/software/gsl/)
-OpenMP - [Open Multi-Processing library](http://openmp.org/wp/)
-plotutils - [The plotutils Package](http://www.gnu.org/software/plotutils/)
-gnuplot - [gnuplot library](http://www.gnuplot.info/)
+cfitsio	- [CFITSIO](http://heasarc.nasa.gov/fitsio/fitsio.html)  
+gcc	- [GNU Compiler Collection](http://gcc.gnu.org/)  
+gsl - [GNU Scientific Library](http://www.gnu.org/software/gsl/)  
+OpenMP - [Open Multi-Processing library](http://openmp.org/wp/)  
+plotutils - [The plotutils Package](http://www.gnu.org/software/plotutils/)  
+gnuplot - [gnuplot library](http://www.gnuplot.info/)  
 
 ### 2.1.
 In this new version of ARES you can select which ploting library you want to use.
