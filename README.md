@@ -117,18 +117,18 @@ section if problems are identified.
 ## 5. INPUT PARAMETERS `mine.opt` FILE:
 ------------------------------------
 
-specfits	: 1D fits spectrum for the analysis
-readlinedat	: line list for the analysis
-fileout	    : output file for the results
-lambdai	    : initial wavelength for the search of the lines
-lambdaf	    : final wavelength for the search of the lines
-smoothder	: parameter for the calibration of the search of the lines. Noise smoother for the derivatives.
-space	    : interval in Angstrom for the computation for each line
-rejt	    : parameter for the calibration of the continuum position.
-lineresol	: this parameter sets the line resolution of the input spectra. If the code finds two lines closer than the value set for this parameters, then we take the two lines as one line alone.
-miniline	: weaker line strength to be printed in the output file
-plots_flag	: flag for the plots. 0-runs in batch, 1-shows the plots and stops for each line calculation.
-rvmask      : parameter for the automatic RV correction
+specfits	: 1D fits spectrum for the analysis  
+readlinedat	: line list for the analysis  
+fileout	    : output file for the results  
+lambdai	    : initial wavelength for the search of the lines  
+lambdaf	    : final wavelength for the search of the lines  
+smoothder	: parameter for the calibration of the search of the lines. Noise smoother for the derivatives.  
+space	    : interval in Angstrom for the computation for each line  
+rejt	    : parameter for the calibration of the continuum position.  
+lineresol	: this parameter sets the line resolution of the input spectra. If the code finds two lines closer than the value set for this parameters, then we take the two lines as one line alone.  
+miniline	: weaker line strength to be printed in the output file  
+plots_flag	: flag for the plots. 0-runs in batch, 1-shows the plots and stops for each line calculation.  
+rvmask      : parameter for the automatic RV correction  
 
 
 
@@ -245,6 +245,7 @@ second to last position.
 
 
 Example of a standard `mini.opt` file:
+
     -----------------------------
     specfits='sun_harps_ganymede.fits'
     readlinedat='linelist.dat'
@@ -262,6 +263,7 @@ Example of a standard `mini.opt` file:
 
 
 Example of a `mini.opt` file for RV autocorrection and rejt auto determination
+
     -----------------------------
     specfits='sun_harps_ganymede.fits'
     readlinedat='linelist.dat'
@@ -278,7 +280,8 @@ Example of a `mini.opt` file for RV autocorrection and rejt auto determination
     -----------------------------
 
 
-Example of a `mini.opt` file for rejt dependent on wavelenght
+Example of a `mini.opt` file for rejt dependent on wavelength
+
     -----------------------------
     specfits='sun_harps_ganymede.fits'
     readlinedat='linelist.dat'
@@ -294,7 +297,8 @@ Example of a `mini.opt` file for rejt dependent on wavelenght
     rvmask='3,6021.8,6024.06,6027.06,6024.06,20'
     -----------------------------
 
-Example of a file `lambda_rejt.opt` for the rejt dependent on wavelenght
+Example of a file `lambda_rejt.opt` for the rejt dependent on wavelength
+
     -----------------------------
     4000.00 0.992
     4500.00 0.992
@@ -327,17 +331,18 @@ example 1:
 example 2:
 
 
-4000.01  	line1
-4007.27  	line2
-4010.18  	line3
-4014.27  	line4
-4080.88  	line5
-4114.94  	line6
+    4000.01  	line1
+    4007.27  	line2
+    4010.18  	line3
+    4014.27  	line4
+    4080.88  	line5
+    4114.94  	line6
 
 ## 6-OUTPUT RESULT(`test.ares_ori`):
 
 In comparison with the last version there will be an extra colunm with the
 estimated error on the equivalent width (column 6)
+
     4000.01  9     0.07521     0.09146     7.32166     1.82360    -0.07521   331.47570     4000.03
     4007.27  2     0.77465     0.10233    84.37734     0.77426    -0.77465   264.79268     4007.27
     4010.18  9     0.35146     0.08053    30.12733     1.03317    -0.35146   427.55094     4010.17
