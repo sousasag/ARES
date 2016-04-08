@@ -359,3 +359,31 @@ Output report:
 5th column: EW of the line  
 6th column: error on EW of the line  
 7th-9th column: gaussians coefficients for the line fit: (depth, sigma, center)
+
+
+----------------------------------------------
+--                  FAQ                     --
+----------------------------------------------
+
+
+### Problems with GSL 2.0 new versions.
+
+If you find a problem with compilation with the error mentioning: 
+In file included from ARES_v2.c:47: 
+areslib.h: In function <fitngaussian>: 
+areslib.h:589: error: <gsl_multifit_fdfsolver> has no member named <J> 
+The solution is to replace the file areslib.h by the one that you can download here
+
+
+### Warning in Fonts for plotutils (Ubuntu 12.04):
+
+1. apt-get install xfs xfstt (Problem in grace resolved) 
+
+2. apt-get install t1-xfree86-nonfree ttf-xfree86-nonfree ttf-xfree86-nonfree-syriac xfonts-75dpi xfonts-100dpi 
+
+(May be we just need to install xfonts-75dpi and xfonts-100dpi only) 
+
+3. Then set the path: 
+
+xset +fp /usr/share/fonts/X11/75dpi/ 
+xset +fp /usr/share/fonts/X11/100dpi/ 
