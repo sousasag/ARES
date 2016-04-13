@@ -47,7 +47,7 @@
 #include "areslib.h"
 #include "rvcor.h"
 #include "sn_rejt_estimator.h"
-
+#include "aresplot.h"
 
 int main() {
 
@@ -68,6 +68,10 @@ int main() {
 
 /* FIM DE Declaracao de variaveis*/
 
+
+/* Create directory for plot files if necessary */
+
+   create_dir_plot();
     
 /* leitura das opcoes , mine.opt file read*/
 
@@ -184,9 +188,16 @@ int main() {
 
 
 //  Some free memory
-    if (flagrm == 1) {
-      system("rm tmp tmp2 tmp3 tmp20 tmp22 tmp23");
+/*    if (flagrm == 1) {
+      system("rm tmp tmp*");
     }
+*/
+    if( access( "tmp", F_OK ) != -1 )
+        system("rm tmp tmp2 tmp3");
+ 
+    if( access( "tmp20", F_OK ) != -1 )
+        system("rm tmp20 tmp22 tmp23");
+
     free(pixels);
     free(xpixels);
     

@@ -293,18 +293,22 @@ void getMedida(double * xpixels, double * pixels, float linha, double space, dou
 				xcvec[i]=acoef[i*3+2];
 				ycvec[i]=acoef[i*3]+1.;
 			}
-                        plotxyover2(x,y,nx,x,yfit2,nx,linha-space,linha+space);
-                        int pausav;
-			printf ("\n\nTo Close the plots, click on it.\n 1-continue to show plots, 0-stop plots\n Make your choise:");
-			scanf("%i", &pausav);
-			plots_flag=pausav;
-                        int nprocs=1;
-                        if (plots_flag==0){
-                                nprocs=omp_get_num_procs();
-                                omp_set_num_threads( nprocs );
-                        }
-                }
-                
+
+			plotxyover2(x,y,nx,x,yfit2,nx,linha-space,linha+space);
+
+            if (PLOT_TYPE !=3) {
+	            int pausav;
+				printf ("\n\nTo Close the plots, click on it.\n 1-continue to show plots, 0-stop plots\n Make your choise:");
+				scanf("%i", &pausav);
+				plots_flag=pausav;
+    	        int nprocs=1;
+    	        if (plots_flag==0){
+    	            nprocs=omp_get_num_procs();
+    	            omp_set_num_threads( nprocs );
+    	        }
+			}
+        }
+
                 
                 if (status2 == 0) {
                     aponta[ilinha*9+0]=linha;
@@ -443,7 +447,7 @@ int continuum_det5 (double x[], double y[], double ynorm[], long nxele, double r
         res[i]=coefs[i];
 
     res[3]=0.;
-    if (plots_flag == 1)
+    if (plots_flag == 1 && PLOT_TYPE != 3)
         plotxyover3(x,y,nxele,x,ynorm,nxele,vecx,vecy,nvec,x[0],x[nxele-1]);
     
     for (i=0; i<nxele; i++)
