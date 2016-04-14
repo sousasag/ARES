@@ -372,7 +372,8 @@ If you find a problem with compilation with the error mentioning:
 In file included from ARES_v2.c:47: 
 areslib.h: In function <fitngaussian>: 
 areslib.h:589: error: <gsl_multifit_fdfsolver> has no member named <J> 
-The solution is to replace the file areslib.h by the one that you can download here
+The solution is to replace the file areslib.h by the one named areslib_gsl2.h:
+https://github.com/sousasag/ARES/blob/master/areslib_gsl2.h
 
 
 ### Warning in Fonts for plotutils (Ubuntu 12.04):
