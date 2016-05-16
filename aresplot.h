@@ -11,7 +11,7 @@
 // 1- for plot_utils
 // 2- for gnuplot
 // 3- for gnuplot saving png plots in plotdir
-#define PLOT_TYPE 2
+#define PLOT_TYPE 3
 
 
 #include <sys/types.h>
@@ -139,6 +139,9 @@ void plotxyover2(double xvec[], double yvec[],long np, double xvec2[], double yv
 			fprintf(pipe, "plot 'tmp' with lines, 'tmp2' with lines, 'tmp3' with lines \n");	
 			fprintf(pipe, "set term x11 \n");	
 			pclose(pipe);
+            char str_norm[300];
+            sprintf(str_norm, "cp tmp plotdir/spec_%08.2f.dat", line);
+            system(str_norm);
 		} else { 
 			FILE *pipe = popen("gnuplot -persist","w");
 			fprintf(pipe, "plot 'tmp' with lines, 'tmp2' with lines, 'tmp3' with lines \n");	

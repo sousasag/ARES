@@ -111,7 +111,12 @@ int main() {
     if (rejt == -2)
         printf("USING lambda_rejt.opt file to rejt dependence on lambda\n");
     else {
-        if (rejt <= 0)      exit(2);
+        if (rejt == -3)
+            printf("Not performing local normalization\n");
+        else {
+            if (rejt <= 0)
+                exit(2);
+        }
     }
     printf("Rejt used for computations: %f\n",rejt);
     
@@ -130,8 +135,12 @@ int main() {
     fprintf(pFile3,"Velocidade radial: %f\n", radvel);
     if (rejt == -2)
         fprintf(pFile3,"Rejt used for computations: USING lambda_rejt.opt file to rejt dependence on lambda\n");
-    else
-        fprintf(pFile3,"Rejt used for computations: %f\n",rejt);
+    else {
+        if (rejt == -3)
+           fprintf(pFile3,"Not performing local normalization\n"); 
+        else
+            fprintf(pFile3,"Rejt used for computations: %f\n",rejt);
+    }
     fprintf(pFile3,"Updated limit spectra: [%f - %f ]\n",lambdai,lambdaf);    
     fclose (pFile3);
     
@@ -197,6 +206,13 @@ int main() {
  
     if( access( "tmp20", F_OK ) != -1 )
         system("rm tmp20 tmp22 tmp23");
+
+    if (PLOT_TYPE == 3) {
+        system("tar cvfz plotdir/norm_spec.tar.gz plotdir/*.dat");
+        system("tar cvfz plotdir/plot_spec.tar.gz plotdir/*.png");
+        system("rm -rf plotdir/*.dat plotdir/*.png");
+    }
+
 
     free(pixels);
     free(xpixels);

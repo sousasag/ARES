@@ -216,6 +216,11 @@ rejt=-2
 Note that for this to work the file `lambda_rejt.opt` should in the same
 directory. An example for this file is presented bellow.
 
+rejt=-3
+
+It will not make the local normalization. However this is still in testing 
+phase. Be caution with this option
+
 ### 5.3. rvmask
 
 this is the only new parameters. If you don't provide this parameter in the
