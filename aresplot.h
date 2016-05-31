@@ -11,7 +11,7 @@
 // 1- for plot_utils
 // 2- for gnuplot
 // 3- for gnuplot saving png plots in plotdir
-#define PLOT_TYPE 3
+#define PLOT_TYPE 2
 
 
 #include <sys/types.h>

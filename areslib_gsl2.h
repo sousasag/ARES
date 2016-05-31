@@ -91,22 +91,28 @@ void getMedida(double * xpixels, double * pixels, float linha, double space, dou
             double x[nx],y[nx], ynorm[nx];
             arraysubcp(x, xpixels,nx1test-1,nx2test );
             arraysubcp(y,  pixels,nx1test-1,nx2test );
-            double res[4];
-            int testflag = continuum_det5(x,y,ynorm,nx,res,rejt,plots_flag);
-            if (testflag == -1) {
-            	printf("Problem with the normalization\n Ignoring this line\n");
-            	aponta[ilinha*9+4]=-1;
-                //Escrever no ficheiro de Log:
-                pFile3 = fopen ("logARES.txt","a");
-                fprintf(pFile3,"%s%s",strLinhaInicial,"Problem with the normalization\n Ignoring this line\n");
-                fclose (pFile3);
-                //Nothing more to do here
-            	return;
+
+    // Control if no normalization is required:
+            if (rejt == -3){
+                printf("Not using local normalization\n");
+                rejt = 0.999;
+            } else {
+                double res[4];
+                int testflag = continuum_det5(x,y,ynorm,nx,res,rejt,plots_flag);
+                if (testflag == -1) {
+                	printf("Problem with the normalization\n Ignoring this line\n");
+                	aponta[ilinha*9+4]=-1;
+                    //Escrever no ficheiro de Log:
+                    pFile3 = fopen ("logARES.txt","a");
+                    fprintf(pFile3,"%s%s",strLinhaInicial,"Problem with the normalization\n Ignoring this line\n");
+                    fclose (pFile3);
+                    //Nothing more to do here
+                	return;
+                }
+
+                for (i=0; i<nx; i++)
+                        y[i]=y[i]/(res[0]+res[1]*x[i]+res[2]*x[i]*x[i]+res[3]*x[i]*x[i]*x[i]);
             }
-
-            for (i=0; i<nx; i++)
-                    y[i]=y[i]/(res[0]+res[1]*x[i]+res[2]*x[i]*x[i]+res[3]*x[i]*x[i]*x[i]);
-
             //encontro dos pontos extremos(xind1,xind2) para o calculo das derivadas...  Encontrar os extremos para o fit. 
             //Nao se usa o space todo para o fit. O space todo apenas e usado para a determinacao local do continuum
 

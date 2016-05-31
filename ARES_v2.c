@@ -207,7 +207,7 @@ int main() {
     if( access( "tmp20", F_OK ) != -1 )
         system("rm tmp20 tmp22 tmp23");
 
-    if (PLOT_TYPE == 3) {
+    if (plots_flag==1 && PLOT_TYPE == 3) {
         system("tar cvfz plotdir/norm_spec.tar.gz plotdir/*.dat");
         system("tar cvfz plotdir/plot_spec.tar.gz plotdir/*.png");
         system("rm -rf plotdir/*.dat plotdir/*.png");
