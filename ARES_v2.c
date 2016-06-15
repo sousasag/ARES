@@ -119,6 +119,7 @@ int main() {
         }
     }
     printf("Rejt used for computations: %f\n",rejt);
+    printf("S/N  used for rejt: %f\n",1./(1.-rejt));
     
     
 // verificação dos limites do espectro
@@ -140,6 +141,7 @@ int main() {
            fprintf(pFile3,"Not performing local normalization\n"); 
         else
             fprintf(pFile3,"Rejt used for computations: %f\n",rejt);
+            fprintf(pFile3,"S/N  used for rejt: %f\n",1./(1.-rejt));
     }
     fprintf(pFile3,"Updated limit spectra: [%f - %f ]\n",lambdai,lambdaf);    
     fclose (pFile3);
