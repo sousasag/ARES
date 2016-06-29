@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   areslib.h
  * Author: sousasag
  *
@@ -18,7 +18,7 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+
 void plotxy(double *, double *, long, double, double);
 void plotxyover(double *, double *, long, double *, double *, long, double, double);
 void plotxyover2(double *, double *, long, double *, double *, long, double, double);
@@ -42,7 +42,7 @@ void plotxy(double xvec[], double yvec[], long np, double xi, double xf){
     buffer = fcvt (xf, 0, &decimal, &sign);
     strcat (str,buffer);
     strcat (str," < tmp");
-    system(str); 
+    system(str);
 /*
     Py_Initialize();
       PyRun_SimpleString("import pylab");
@@ -51,7 +51,7 @@ void plotxy(double xvec[], double yvec[], long np, double xi, double xf){
       PyRun_SimpleString("pylab.plot(x,y)");
       PyRun_SimpleString("pylab.show()");
     Py_Exit(0);
-*/    
+*/
     printf("%s\n",str);
 //    system("rm tmp");
 }
@@ -113,7 +113,7 @@ void plotxyover2(double xvec[], double yvec[],long np, double xvec2[], double yv
     } else {
 //  GNUPLOT:
 		FILE *pipe = popen("gnuplot -persist","w");
-		fprintf(pipe, "plot 'tmp' with lines, 'tmp2' with lines, 'tmp3' with lines \n");	
+		fprintf(pipe, "plot 'tmp' with lines, 'tmp2' with lines, 'tmp3' with lines \n");
 		pclose(pipe);
 	}
 
@@ -157,10 +157,10 @@ void plotxyover3(double xvec[], double yvec[],long np, double xvec2[], double yv
 	} else {
 	//  GNUPLOT:
 		FILE *pipe = popen("gnuplot -persist","w");
-		fprintf(pipe, "plot 'tmp20' with lines, 'tmp22' with lines, 'tmp23' with points\n");	
-		pclose(pipe);  
+		fprintf(pipe, "plot 'tmp20' with lines, 'tmp22' with lines, 'tmp23' with points\n");
+		pclose(pipe);
 	//    system("rm tmp20 tmp22 tmp23");
-		
+
 	}
 
 }
@@ -173,4 +173,3 @@ void plotxyover3(double xvec[], double yvec[],long np, double xvec2[], double yv
 #endif
 
 #endif	/* _ARESPLOT_H */
-

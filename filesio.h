@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   filesio.h
  * Author: sousasag
  *
@@ -30,8 +30,8 @@ void read_lines_list(char * fileleitura, long* nl2, double** linhas);
 void write_outfile(char *fileout, double* aponta, int nl, int miniline);
 
 void write_outfile(char *fileout, double* aponta, int nl, int miniline){
-   
-    
+
+
     FILE *pFile2;
     pFile2 = fopen (fileout,"wt");
     int ilinha;
@@ -121,13 +121,13 @@ void read_spectrum_file(char * filetest, long* npoints, double** pixels2, double
 }
 
 
-void read_ascii_file(char * filetest, long* npoints, double** pixels2, double** xpixels2, double* cdelta1mean, double* crval1){    
+void read_ascii_file(char * filetest, long* npoints, double** pixels2, double** xpixels2, double* cdelta1mean, double* crval1){
 
     long nl;
     char str[200], * pch, *stopstring;
     double *pixels, *xpixels;
     nl=file_lines(filetest)-1;
-    
+
 
     pixels = (double *) malloc((nl-2) * sizeof(double));
     xpixels= (double *) malloc((nl-2) * sizeof(double));
@@ -162,7 +162,7 @@ void read_ascii_file(char * filetest, long* npoints, double** pixels2, double** 
     *crval1=xpixels[0];
     *npoints=nl-2;
     *cdelta1mean=meanx/(nl-2);
-    
+
 }
 
 void read_fits_file(char * filetest, long* npoints, double** pixels2, double** xpixels2, double* cdelta1, double* crval1){
@@ -223,18 +223,18 @@ void read_fits_file(char * filetest, long* npoints, double** pixels2, double** x
 
 void read_mine(char * mine, char* filetest, char* fileleitura, char* fileout, double* lambdai, double* lambdaf, double* smoothder, double* space, char* tree, double* distlinha, double* miniline, int* plots_flag, char* rvmask) {
 
-    
+
     long nl;
-    
+
     nl = file_lines("mine.opt")-1;
     printf("number of options: %ld\n", nl);
-    
+
     FILE * pFile3;
     pFile3= fopen ("logARES.txt","wt");
     fprintf(pFile3,"Input File ARES...\n");
 
 
-    
+
     FILE * fopt = fopen("mine.opt","rt");
     char str[200];
     system("clear");
@@ -336,7 +336,7 @@ void read_mine(char * mine, char* filetest, char* fileleitura, char* fileout, do
     *plots_flag=atoi(pch);
     printf("plots_flag: %i\n",*plots_flag);
     fprintf(pFile3,"plots_flag: %i\n",*plots_flag);
-    
+
     if (nl > 11){
         fgets (str , 200 , fopt);
         pch = strtok (str,"' ");
@@ -360,4 +360,3 @@ void read_mine(char * mine, char* filetest, char* fileleitura, char* fileout, do
 #endif
 
 #endif	/* _FILESIO_H */
-

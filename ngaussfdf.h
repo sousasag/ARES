@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   ngaussdfd.h
  * Author: sousasag
  *
