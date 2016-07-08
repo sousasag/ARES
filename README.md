@@ -380,6 +380,12 @@ areslib.h:589: error: <gsl_multifit_fdfsolver> has no member named <J>
 The solution is to replace the file areslib.h by the one named areslib_gsl2.h:
 https://github.com/sousasag/ARES/blob/master/areslib_gsl2.h
 
+### Problem finding "fitsio.h"
+
+In Fedora Core flavours it was reported a problem when finding the fitsio.h file in the system.
+A possible solution is to edit the areslib.h file and replace the line with #include "fitsio.h" 
+by #include "cfitsio/fitsio.h"
+
 
 ### Warning in Fonts for plotutils (Ubuntu 12.04):
 
