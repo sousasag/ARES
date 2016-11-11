@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
 	char fileinput[200];
 	if (argc > 2) {
-		printf("To many arguments\n It should be ./ARES or ./ARES [input_file]\n");
+		printf("Too many arguments\n It should be ./ARES or ./ARES [input_file]\n");
 		return 0;
 	}
 
