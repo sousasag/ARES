@@ -226,7 +226,7 @@ void read_mine(char * mine, char* filetest, char* fileleitura, char* fileout, do
     
     long nl;
     
-    nl = file_lines("mine.opt")-1;
+    nl = file_lines(mine)-1;
     printf("number of options: %ld\n", nl);
     
     FILE * pFile3;
@@ -235,7 +235,7 @@ void read_mine(char * mine, char* filetest, char* fileleitura, char* fileout, do
 
 
     
-    FILE * fopt = fopen("mine.opt","rt");
+    FILE * fopt = fopen(mine,"rt");
     char str[200];
     system("clear");
     printf("Input Parameters:\n\n");
