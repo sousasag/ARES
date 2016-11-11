@@ -371,7 +371,7 @@ Output report:
 ----------------------------------------------
 
 
-### Problems with GSL 2.0 new versions.
+### Problems with GSL 2.0 of GSL 1.0 versions.
 
 If you find a problem with compilation with the error mentioning: 
 In file included from ARES_v2.c:47: 
@@ -379,6 +379,11 @@ areslib.h: In function <fitngaussian>:
 areslib.h:589: error: <gsl_multifit_fdfsolver> has no member named <J> 
 The solution is to replace the file areslib.h by the one named areslib_gsl2.h:
 https://github.com/sousasag/ARES/blob/master/areslib_gsl2.h
+
+or if you have GSL 1.3 you can replace areslib.h by areslib_gsl1.h
+https://github.com/sousasag/ARES/blob/master/areslib_gsl1.h
+
+
 
 ### Problem finding "fitsio.h"
 
