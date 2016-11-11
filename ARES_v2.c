@@ -49,10 +49,25 @@
 #include "sn_rejt_estimator.h"
 #include "aresplot.h"
 
-int main() {
+
+int main(int argc, char **argv) {
 
 /*Declaraçao de variaveis*/
 
+
+	char fileinput[200];
+	if (argc > 2) {
+		printf("To many arguments\n It should be ./ARES or ./ARES [input_file]\n");
+		return 0;
+	}
+
+	if (argc == 2) {
+		strcpy(fileinput, argv[1]);
+	} else {
+		strcpy(fileinput, "mine.opt");
+	}
+
+	printf("%s\n", fileinput);
 
     FILE * pFile3;
     int status2; int flagrm=0;
@@ -75,7 +90,7 @@ int main() {
     
 /* leitura das opcoes , mine.opt file read*/
 
-    read_mine("mine.opt", filetest, fileleitura, fileout, &lambdai, &lambdaf, &smoothder, &space, tree, &distlinha, &miniline, &plots_flag, rvmask);
+    read_mine(fileinput, filetest, fileleitura, fileout, &lambdai, &lambdaf, &smoothder, &space, tree, &distlinha, &miniline, &plots_flag, rvmask);
 
     
     
