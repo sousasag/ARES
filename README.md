@@ -375,9 +375,9 @@ In aresplot.h you can define a constant to select ploting choice:
 #define PLOT_TYPE 2
 ```
 
-1- for plot_utils
-2- for gnuplot
-3- for gnuplot saving png plots in plotdir
+1- for plot_utils  
+2- for gnuplot  
+3- for gnuplot saving png plots in plotdir  
 
 
 In ARES_v2.c you have a constant flag which can be used to skip the local normalization
@@ -386,8 +386,8 @@ In ARES_v2.c you have a constant flag which can be used to skip the local normal
 #define CONT_FLAG 0
 ```
 
-0- Local normalization (standard)
-1- Skip Normalization
+0- Local normalization (standard)  
+1- Skip Normalization  
 
 ----------------------------------------------
 --                  FAQ                     --
