@@ -49,6 +49,9 @@
 #include "sn_rejt_estimator.h"
 #include "aresplot.h"
 
+// 0- Local normalization (standard)
+// 1- Skip Normalization
+#define CONT_FLAG 0
 
 int main(int argc, char **argv) {
 
@@ -122,7 +125,8 @@ int main(int argc, char **argv) {
     crval1=xpixels[0];
     printf("ponto %d, lambda: %f \n",1000,xpixels[1000]);
     
-    rejt=get_rejt(tree, xpixels,pixels, npoints);
+    rejt=get_rejt(tree, xpixels, pixels, npoints);
+
     if (rejt == -2)
         printf("USING lambda_rejt.opt file to rejt dependence on lambda\n");
     else {
@@ -204,7 +208,7 @@ int main(int argc, char **argv) {
                 rejtin = get_rejt_lambda_file(linha);
                 printf("\nUsing rejt = %f for line: %f\n", rejtin, linha);
             }
-            getMedida(xpixels, pixels, linha, space, rejtin, &plots_flag, smoothder, distlinha, pFile3, fgh, aponta, lambdai, lambdaf);
+            getMedida(xpixels, pixels, linha, space, rejtin, &plots_flag, smoothder, distlinha, pFile3, fgh, aponta, lambdai, lambdaf, CONT_FLAG);
                 
         } else aponta[fgh*9+4]=-1;
     }

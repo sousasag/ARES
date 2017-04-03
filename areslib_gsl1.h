@@ -41,7 +41,7 @@ void fitngauss(double *, double *, double *, long,  double *, double *, int, int
 
 long find_pixel_line(double * xpixels, double linha);
 
-void getMedida(double * xpixels, double * pixels, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf);
+void getMedida(double * xpixels, double * pixels, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag);
 
 
 
@@ -66,7 +66,7 @@ long find_pixel_line(double * xpixels, double linha){
     return nctest;
 }
 
-void getMedida(double * xpixels, double * pixels, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3 , int ilinha, double *aponta, double lambdai, double lambdaf){
+void getMedida(double * xpixels, double * pixels, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3 , int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag){
 
     //definicao dos pontos do intervalo local para normalizar o espectro a volta da linha
             int i, status2;
@@ -93,9 +93,10 @@ void getMedida(double * xpixels, double * pixels, float linha, double space, dou
             arraysubcp(y,  pixels,nx1test-1,nx2test );
 
     // Control if no normalization is required:
-            if (rejt == -3){
+            if (rejt == -3 || cont_flag == 1){
                 printf("Not using local normalization\n");
-                rejt = 0.999;
+                if (rejt == -3)
+                    rejt = 0.999;
             } else {
                 double res[4];
                 int testflag = continuum_det5(x,y,ynorm,nx,res,rejt,plots_flag);
