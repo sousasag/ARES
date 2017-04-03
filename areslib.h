@@ -35,7 +35,7 @@ void poly_fitn(double *, double *, double *, long, long, double *);
 int continuum_det5 (double *, double *, double *, long, double *, double, int);
 void deriv(double *, double *, double *, long);
 void smooth(double *, long, int, double *);
-void zeroscenterfind(double *, double *, double *, double *, long, long *, long *);
+void zeroscenterfind(double *, double *, double *, double *, long, long *, long *, double rejt);
 double maxele_vec(double *, long);
 void fitngauss(double *, double *, double *, long,  double *, double *, int, int *);
 
@@ -151,7 +151,7 @@ void getMedida(double * xpixels, double * pixels, float linha, double space, dou
             double cont[nlin], zeros[nlin];
             long ncont=nlin, nzeros=nlin, ncenter=nlin, center[nlin];
 
-            zeroscenterfind(ylin, iylin, dylin, ddylin, nlin, center, &ncenter);
+            zeroscenterfind(ylin, iylin, dylin, ddylin, nlin, center, &ncenter, rejt);
 
 //	calculo, interpolacao da posicao das riscas no espectro
 
@@ -484,7 +484,7 @@ void smooth(double vec[], long n, int w, double svec[]) {
 }
 
 
-void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n, long center[], long *ncenter) {
+void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n, long center[], long *ncenter, double rejt) {
     double zerostot[n], contot[n], tutezerostot[n][2], maxdy;
     long ntot=0, nctot=0, ctot=0, i, centertot[n];
     int signal=0, signalc=0, signal_ant, signalc_ant;
@@ -496,14 +496,25 @@ void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n,
     signalc_ant=signalc;
     maxdy=maxele_vec(dy,n);
 
+        // quando muda de sinal, é um maximo local na 2a derivada esta abaixo do ruido e a 3 derivada já negativa o suficiente (devido a oscilacao do ruido)
+        // no 0.98 a ideia era ter o tree, mas a coisa nao funcionava bem. Identicaria muitas riscas para o caso de termos bom S/N
+        // Assim so aceitamos riscas identificadas que tenham uma dept de pelo menos 0.98
+        // 3 April - In case of wide lines, the 0.98 was not allowing the detection of some weak lines
+        // Introducing a 5. x rejt like dist to 1. so it consider weak lines
+
+    double cut_lines = 0.98;
+    double cut_rejt = 1. - (1.-rejt) * 5.;
+    printf("%f    %f \n", cut_rejt, cut_lines);
+    if (cut_rejt > cut_lines) {
+        cut_lines = cut_rejt;
+    }
+
     for (i=0; i<n; i++) {
         signalc=0;
         if ( (float) ddy[i] == fabs( (float) ddy[i]) )
             signalc=1;
-        // quando muda de sinal, é um maximo local na 2a derivada esta abaixo do ruido e a 3 derivada já negativa o suficiente (devido a oscilacao do ruido)
-        // no 0.98 a ideia era ter o tree, mas a coisa nao funcionava bem. Identicaria muitas riscas para o caso de termos bom S/N
-        // Assim so aceitamos riscas identificadas que tenham uma dept de pelo menos 0.98
-        if ( (signalc != signalc_ant) && (dy[i] > 0.01*maxdy) && (iy[i] < 0.98) && (ddy[i] < -0.1) ) {
+
+        if ( (signalc != signalc_ant) && (dy[i] > 0.01*maxdy) && (iy[i] < cut_lines) && (ddy[i] < -0.1) ) {
             centertot[ctot]=i;
             ctot++;
         }
