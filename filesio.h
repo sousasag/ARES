@@ -37,7 +37,7 @@ void write_outfile(char *fileout, double* aponta, int nl, int miniline){
     int ilinha;
     for (ilinha=0;ilinha<nl;ilinha++) {
         if (aponta[ilinha*9+4] > miniline && aponta[ilinha*9+4] < 500. && aponta[ilinha*9+1] > 0)
-            fprintf(pFile2," %10.2f  %ld  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.2f\n", aponta[ilinha*9+0], (long) aponta[ilinha*9+1], aponta[ilinha*9+2], aponta[ilinha*9+3], aponta[ilinha*9+4], aponta[ilinha*9+8], aponta[ilinha*9+5], aponta[ilinha*9+6], aponta[ilinha*9+7]);
+            fprintf(pFile2," %10.3f  %ld  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.2f\n", aponta[ilinha*9+0], (long) aponta[ilinha*9+1], aponta[ilinha*9+2], aponta[ilinha*9+3], aponta[ilinha*9+4], aponta[ilinha*9+8], aponta[ilinha*9+5], aponta[ilinha*9+6], aponta[ilinha*9+7]);
 
     }
     fclose (pFile2);
