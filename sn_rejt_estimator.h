@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   sn_rejt_estimator.h
  * Author: sousasag
  *
@@ -11,7 +11,7 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+
 #include <string.h>
 #include <stdio.h>
 #include <gsl/gsl_statistics.h>
@@ -32,7 +32,7 @@ double get_rejt_from_sn(double sn);
 double get_rejt_lambda_file(double lambda);
 
 double get_rejt_lambda_file(double lambda){
-    double *lambdavec, *rejtvec;   
+    double *lambdavec, *rejtvec;
     double cdelta1mean=0;
     double crval1=0;
     long npoints=0;
@@ -43,7 +43,7 @@ double get_rejt_lambda_file(double lambda){
         printf("%d - %f - %f\n", i,lambdavec [i], rejtvec[i]);
     }
 */
-    
+
     gsl_interp *interpolation = gsl_interp_alloc (gsl_interp_linear,npoints);
     gsl_interp_init(interpolation, lambdavec, rejtvec, npoints);
     gsl_interp_accel * accelerator =  gsl_interp_accel_alloc();
@@ -51,10 +51,10 @@ double get_rejt_lambda_file(double lambda){
     double rejt_lambda = gsl_interp_eval(interpolation,lambdavec, rejtvec, lambda, accelerator);
 
 //    printf("%f  -  %f  \n",lambda,rejt_lambda);
-   
+
     gsl_interp_free (interpolation);
     gsl_interp_accel_free (accelerator);
-    
+
     free(lambdavec);
     free(rejtvec);
     return rejt_lambda;
@@ -114,8 +114,8 @@ double get_rejt(char* tree, double* lambda, double* flux, long np){
 double compute_sn_range(double li,double lf,double* lambda, double* flux, long np){
     double sn=-1.0;
     if ( lambda[0] < li && lf < lambda[np-1]){
-        long pi=find_pixel_line(lambda, li);
-        long pf=find_pixel_line(lambda, lf);
+        long pi=find_pixel_line(lambda, np, li);
+        long pf=find_pixel_line(lambda, np, lf);
         long npr=pf-pi;
         double fluxrange[npr],lambdarange[npr],fluxrangesmooth[npr],noise[npr],temp[npr],noise_clean[npr];
         arraysubcp(fluxrange,flux,pi,pf);
@@ -123,7 +123,7 @@ double compute_sn_range(double li,double lf,double* lambda, double* flux, long n
         smooth(fluxrange,npr,SMOOTH_NOISE,fluxrangesmooth);
         double average=avg(fluxrange,npr);
         int i;
-        for (i=0;i<npr;i++) 
+        for (i=0;i<npr;i++)
             noise[i]=fluxrange[i]-fluxrangesmooth[i]+average;
         long n_clean=0;
         average=avg(noise,npr);
@@ -178,4 +178,3 @@ void remove_outlier(double* arrayin, long nin,double* arrayout,long* nout, doubl
 #endif
 
 #endif	/* SN_REJT_ESTIMATOR_H */
-
