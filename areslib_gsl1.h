@@ -39,9 +39,9 @@ void zeroscenterfind(double *, double *, double *, double *, long, long *, long 
 double maxele_vec(double *, long);
 void fitngauss(double *, double *, double *, long,  double *, double *, int, int *);
 
-long find_pixel_line(double * xpixels, double linha);
+long find_pixel_line(double * xpixels, long npoints, double linha);
 
-void getMedida(double * xpixels, double * pixels, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag);
+void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag);
 
 
 
@@ -52,28 +52,39 @@ void clean_zero_gaps(double* flux, long np){
 }
 
 
-long find_pixel_line(double * xpixels, double linha){
+long find_pixel_line(double * xpixels, long npoints, double linha){
     long nctest;
     double restest[2];
     double cdelta1=xpixels[1]-xpixels[0];
+    double cdelta_last=xpixels[npoints-1]-xpixels[npoints-2];
     double crval1=xpixels[0];
     restest[0]=1./cdelta1;
     restest[1]=-crval1/cdelta1;
     nctest=(long) (restest[0]*linha+restest[1]);
     nctest++;
-// implementar verificação de proximidade da linha. Para o caso de cdeltas nao equidistantes. Neste caso podemos implementar um if para ver se está suficientemente perto.
-// Se nao estiver perto um while até se encontrar perto depois de verificar se tem de somar ou subtrair (cuidado com os limites)
+    // implementar verificação de proximidade da linha. Para o caso de cdeltas nao equidistantes. Neste caso podemos implementar um if para ver se está suficientemente perto.
+    // Se nao estiver perto um while até se encontrar perto depois de verificar se tem de somar ou subtrair (cuidado com os limites)
+    if (cdelta1 != cdelta_last) {
+      printf("Refining search for central wavelenght\n");
+      if (xpixels[nctest] < linha) {
+        while(xpixels[nctest] < linha)
+          nctest++;
+      } else {
+        while(xpixels[nctest] > linha)
+          nctest--;
+      }
+    }
     return nctest;
 }
 
-void getMedida(double * xpixels, double * pixels, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3 , int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag){
+void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3 , int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag){
 
     //definicao dos pontos do intervalo local para normalizar o espectro a volta da linha
             int i, status2;
             int plots_flag=*plots_flag2;
-            long nctest=find_pixel_line(xpixels, linha);
-            long nx1test=find_pixel_line(xpixels, linha-space);
-            long nx2test=find_pixel_line(xpixels, linha+space);
+            long nctest=find_pixel_line(xpixels, npoints, linha);
+            long nx1test=find_pixel_line(xpixels, npoints, linha-space);
+            long nx2test=find_pixel_line(xpixels, npoints, linha+space);
 
             char strLinhaInicial[100];
             strcpy(strLinhaInicial,"  ");
@@ -114,7 +125,7 @@ void getMedida(double * xpixels, double * pixels, float linha, double space, dou
                 for (i=0; i<nx; i++)
                         y[i]=y[i]/(res[0]+res[1]*x[i]+res[2]*x[i]*x[i]+res[3]*x[i]*x[i]*x[i]);
             }
-            //encontro dos pontos extremos(xind1,xind2) para o calculo das derivadas...  Encontrar os extremos para o fit. 
+            //encontro dos pontos extremos(xind1,xind2) para o calculo das derivadas...  Encontrar os extremos para o fit.
             //Nao se usa o space todo para o fit. O space todo apenas e usado para a determinacao local do continuum
 
             int xind1=0,xind2=nx-1,hjk;
