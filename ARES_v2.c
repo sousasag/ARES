@@ -53,6 +53,13 @@
 // 1- Skip Normalization
 #define CONT_FLAG 0
 
+
+// -1: There is not max number of LINES
+#define MAX_FIT_LINES -1
+// #define MAX_FIT_LINES 8
+
+
+
 int main(int argc, char **argv) {
 
 /*Declaraçao de variaveis*/
@@ -208,7 +215,7 @@ int main(int argc, char **argv) {
                 rejtin = get_rejt_lambda_file(linha);
                 printf("\nUsing rejt = %f for line: %f\n", rejtin, linha);
             }
-            getMedida(xpixels, pixels, npoints, linha, space, rejtin, &plots_flag, smoothder, distlinha, pFile3, fgh, aponta, lambdai, lambdaf, CONT_FLAG);
+            getMedida(xpixels, pixels, npoints, linha, space, rejtin, &plots_flag, smoothder, distlinha, pFile3, fgh, aponta, lambdai, lambdaf, CONT_FLAG, MAX_FIT_LINES);
 
         } else aponta[fgh*9+4]=-1;
     }

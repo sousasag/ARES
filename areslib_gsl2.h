@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   areslib.h
  * Author: sousasag
  *
@@ -6,7 +6,7 @@
  */
 
 #ifndef _ARESLIB_H
-#define	_ARESLIB_H
+#define _ARESLIB_H
 
 #include <string.h>
 #include <stdio.h>
@@ -25,10 +25,10 @@
 #include "filesio.h"
 #include "aresplot.h"
 #define max(a,b) (((a)>(b))?(a):(b))
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 extern "C" {
 #endif
-    
+
 void clean_zero_gaps(double* flux, long np);
 void arraysubcp(double *, double *, long, long);
 void poly_fitn(double *, double *, double *, long, long, double *);
@@ -41,7 +41,7 @@ void fitngauss(double *, double *, double *, long,  double *, double *, int, int
 
 long find_pixel_line(double * xpixels, long npoints, double linha);
 
-void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag);
+void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines);
 
 
 
@@ -77,7 +77,48 @@ long find_pixel_line(double * xpixels, long npoints, double linha){
     return nctest;
 }
 
-void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3 , int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag){
+
+void cut_max_lines(double* xvec2, double* yvec2, int ncenter, float linha, int max_fit_lines){
+        float lines_distance[ncenter];
+        int index_distance[ncenter];
+        int temp=0;
+        for (int i=0; i<ncenter; i++) {
+            lines_distance[i] = abs(xvec2[i] - linha);
+            index_distance[i]=i;
+        }
+
+    // index orders
+        for (int i=0;i<ncenter-1;i++) {
+            for(int j=i+1;j<ncenter;j++){
+                if (lines_distance[index_distance[j]] < lines_distance[index_distance[i]]) {
+                    temp = index_distance[i];
+                    index_distance[i] = index_distance[j];
+                    index_distance[j] = temp;
+                }
+            }
+        }
+
+				double xvecout[max_fit_lines], yvecout[max_fit_lines];
+				int k=0;
+				for (int i=0; i<ncenter;i++) {
+					int flag = 0;
+						for (int j=0; j<max_fit_lines;j++)
+							if (i==index_distance[j]) flag=1;
+					if (flag == 1) {
+						xvecout[k]=xvec2[i];
+						yvecout[k]=yvec2[i];
+						k++;
+					}
+				}
+				for (int i=0; i<max_fit_lines;i++) {
+					xvec2[i] = xvecout[i];
+					yvec2[i] = yvecout[i];
+				}
+
+}
+
+
+void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3 , int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines){
 
     //definicao dos pontos do intervalo local para normalizar o espectro a volta da linha
             int i, status2;
@@ -112,14 +153,14 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 double res[4];
                 int testflag = continuum_det5(x,y,ynorm,nx,res,rejt,plots_flag);
                 if (testflag == -1) {
-                	printf("Problem with the normalization\n Ignoring this line\n");
-                	aponta[ilinha*9+4]=-1;
+                        printf("Problem with the normalization\n Ignoring this line\n");
+                        aponta[ilinha*9+4]=-1;
                     //Escrever no ficheiro de Log:
                     pFile3 = fopen ("logARES.txt","a");
                     fprintf(pFile3,"%s%s",strLinhaInicial,"Problem with the normalization\n Ignoring this line\n");
                     fclose (pFile3);
                     //Nothing more to do here
-                	return;
+                        return;
                 }
 
                 for (i=0; i<nx; i++)
@@ -158,14 +199,14 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
             arraysubcp(ddylin, ddylincaga,xind1,xind2 );
 
 
-//	procura das riscas que ha a volta da risca que queremos
+//      procura das riscas que ha a volta da risca que queremos
 
             double cont[nlin], zeros[nlin];
             long ncont=nlin, nzeros=nlin, ncenter=nlin, center[nlin];
 
             zeroscenterfind(ylin, iylin, dylin, ddylin, nlin, center, &ncenter, rejt);
 
-//	calculo, interpolacao da posicao das riscas no espectro
+//      calculo, interpolacao da posicao das riscas no espectro
 
             if (center[0] != -1 & ncenter != 0) {
                 double xlinhas[ncenter], ylinhas[ncenter];
@@ -179,7 +220,7 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 char strLinhaFound[ncenter*8+30];
                 strcpy(strLinhaFound,"\n LINES FOUND TO FIT \n");
 
-		for (i=0; i<ncenter; i++) {
+                for (i=0; i<ncenter; i++) {
                     char strtmp[9];
                     sprintf(strtmp,"%.2f ", xlinhas[i]);
                     strcat(strLinhaFound,strtmp);
@@ -187,14 +228,14 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 strcat(strLinhaFound,"\n");
                 printf("%s",strLinhaFound);
 
-                //RESAMPLING, Eliminacao das riscas que estao muito juntas...
-		double xvec2[ncenter], yvec2[ncenter];
+//    RESAMPLING, Eliminacao das riscas que estao muito juntas...
+                double xvec2[ncenter], yvec2[ncenter];
 
                 int nvec2,j;
-		xvec2[0]=xlinhas[0];
-		yvec2[0]=ylinhas[0];
-		j=0;
-		for(i=1;i<ncenter;i++) {
+                xvec2[0]=xlinhas[0];
+                yvec2[0]=ylinhas[0];
+                j=0;
+                for(i=1;i<ncenter;i++) {
                     if (fabs(xvec2[j]-xlinhas[i]) < distlinha ) {
                         xvec2[j]=(xvec2[j]+xlinhas[i])/2.;
                         yvec2[j]=(yvec2[j]+ylinhas[i])/2.;
@@ -203,14 +244,19 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                         xvec2[j]=xlinhas[i];
                         yvec2[j]=ylinhas[i];
                     }
-		}
-		nvec2=j+1;
+                }
+                nvec2=j+1;
 
+//      cutting lines when there are to many to improve efficiency of fitting
+                if (max_fit_lines > 0 && nvec2 > max_fit_lines) {
+                    cut_max_lines(xvec2,yvec2,nvec2,linha, max_fit_lines);
+                    nvec2 = max_fit_lines;
+                }
 
                 char strLinhaResample[nvec2*8+30];
                 strcpy(strLinhaResample,"\n RESAMPLING \n");
 
-		for (i=0; i<nvec2; i++)	{
+                for (i=0; i<nvec2; i++) {
                     char strtmp[9];
                     sprintf(strtmp,"%.2f ", xvec2[i]);
                     strcat(strLinhaResample,strtmp);
@@ -218,39 +264,39 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 strcat(strLinhaResample,"\n");
                 printf("%s",strLinhaResample);
 
-		ncenter=nvec2;
-		int para=3*ncenter;
-		int npara=0;
-		double acoef[para], acoef_er[para];     //initial guesses
-		for (i=0;i<ncenter;i++) {
+                ncenter=nvec2;
+                int para=3*ncenter;
+                int npara=0;
+                double acoef[para], acoef_er[para];     //initial guesses
+                for (i=0;i<ncenter;i++) {
                     acoef[3*npara]=yvec2[i]-1.;
                     acoef[3*npara+1]=400.;
                     acoef[3*npara+2]=xvec2[i];
                     npara++;
-		}
+                }
 
-		double xfit[nlin], yfit[nlin], sigma[nlin];
-		for (i=0;i<nlin;i++) {
+                double xfit[nlin], yfit[nlin], sigma[nlin];
+                for (i=0;i<nlin;i++) {
                     xfit[i]=xlin[i];
                     yfit[i]=iylin[i]-1.0;
 //                    sigma[i]=0.1;   //NEED to DEFINE a better sigma (dependent on the S/N)
                     sigma[i]=1.-rejt;   //NEED to DEFINE a better sigma (dependent on the S/N)
-		}
-                
+                }
+
                 char strLinhaGuess[para*65+30];
                 strcpy(strLinhaGuess,"\n GUESS COEFS :\n");
-		for (i=0;i<para;i+=3){
+                for (i=0;i<para;i+=3){
                     char strtmp[65];
                     sprintf(strtmp,"acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n", i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]);
                     strcat(strLinhaGuess,strtmp);
                 }
                 printf("%s",strLinhaGuess);
-                
-		fitngauss(xfit,yfit,sigma,nlin,acoef,acoef_er,para,&status2);
 
-		char strLinhaFitted[para*200+30];
+                fitngauss(xfit,yfit,sigma,nlin,acoef,acoef_er,para,&status2);
+
+                char strLinhaFitted[para*200+30];
                 strcpy(strLinhaFitted,"\n FITTED COEFS :\n");
-		for (i=0;i<para;i+=3){
+                for (i=0;i<para;i+=3){
                     char strtmp[2000];
                     sprintf(strtmp,"::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n", i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]);
                     strcat(strLinhaFitted,strtmp);
@@ -258,18 +304,18 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                     strcat(strLinhaFitted,strtmp);
                 }
                 printf("%s",strLinhaFitted);
-                
-		double yfit2[nx];
-		for (i=0;i<nx;i++) {
+
+                double yfit2[nx];
+                for (i=0;i<nx;i++) {
                     yfit2[i]=1.0;
                     for (j=0;j<ncenter;j++)
                         yfit2[i]+=acoef[j*3]* exp (- acoef[j*3+1] * (x[i]-acoef[j*3+2]) * (x[i]-acoef[j*3+2]) );
-		}
+                }
 
-		double medida=0, medida_er_square=0, medida_er=0;
-		int nmed=0, hj=0, hjl=0;
+                double medida=0, medida_er_square=0, medida_er=0;
+                int nmed=0, hj=0, hjl=0;
 
-		for (hj=0; hj<ncenter;hj++) {
+                for (hj=0; hj<ncenter;hj++) {
                     if ( fabs(linha-acoef[3*hj+2]) < distlinha ) {
                         medida+=acoef[3*hj]*sqrt(3.1415927/acoef[3*hj+1]);
                         medida_er_square+=medida*medida * ( acoef_er[3*hj]*acoef_er[3*hj]/acoef[3*hj]/acoef[3*hj] + (0.5*0.5*acoef_er[3*hj+1]*acoef_er[3*hj+1]/acoef[3*hj+1]/acoef[3*hj+1]));
@@ -278,7 +324,7 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                     }
                 }
 
-		medida=medida*(-1000.);
+                medida=medida*(-1000.);
                 medida_er=sqrt(medida_er_square)*1000.;
                 char strLinhaResult[300];
                 char strtmp[100];
@@ -292,42 +338,41 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 strcat(strLinhaResult,strtmp);
 
 
-		if (nmed == 1) {
+                if (nmed == 1) {
                     sprintf(strtmp,"line depth : %.5f \n", -acoef[3*hjl]);
                     strcat(strLinhaResult,strtmp);
                     // FWHM para a gaussiana defenida: F(X)=Aexp(-Lambda(x-c)^2) => FWHM=2*sqrt(ln(2)/lambda)
                     sprintf(strtmp,"FWHM : %.5f \n-------------------------\n", 2.*sqrt(log(2)/acoef[3*hjl+1]));
                     strcat(strLinhaResult,strtmp);
                     // FWHM para a gaussiana defenida: F(X)=Aexp(-Lambda(x-c)^2) => FWHM=2*sqrt(ln(2)/lambda)
-		}
+                }
 
-		sprintf(strtmp,"int 2 status: %i", status2);
+                sprintf(strtmp,"int 2 status: %i", status2);
                 strcat(strLinhaResult,strtmp);
                 printf("%s",strLinhaResult);
 
-		if (plots_flag == 1) {
-			double xcvec[ncenter], ycvec[ncenter];
-			for (i=0;i<ncenter;i++) {
-				xcvec[i]=acoef[i*3+2];
-				ycvec[i]=acoef[i*3]+1.;
-			}
+                if (plots_flag == 1) {
+                    double xcvec[ncenter], ycvec[ncenter];
+                    for (i=0;i<ncenter;i++) {
+                        xcvec[i]=acoef[i*3+2];
+                        ycvec[i]=acoef[i*3]+1.;
+                    }
+                    plotxyover2(x,y,nx,x,yfit2,nx,linha-space,linha+space);
 
-			plotxyover2(x,y,nx,x,yfit2,nx,linha-space,linha+space);
+                    if (PLOT_TYPE !=3) {
+                        int pausav;
+                        printf ("\n\nTo Close the plots, click on it.\n 1-continue to show plots, 0-stop plots\n Make your choise:");
+                        scanf("%i", &pausav);
+                        plots_flag=pausav;
+                        int nprocs=1;
+                        if (plots_flag==0){
+                            nprocs=omp_get_num_procs();
+                            omp_set_num_threads( nprocs );
+                        }
+                    }
+                }
 
-            if (PLOT_TYPE !=3) {
-	            int pausav;
-				printf ("\n\nTo Close the plots, click on it.\n 1-continue to show plots, 0-stop plots\n Make your choise:");
-				scanf("%i", &pausav);
-				plots_flag=pausav;
-    	        int nprocs=1;
-    	        if (plots_flag==0){
-    	            nprocs=omp_get_num_procs();
-    	            omp_set_num_threads( nprocs );
-    	        }
-			}
-        }
 
-                
                 if (status2 == 0) {
                     aponta[ilinha*9+0]=linha;
                     aponta[ilinha*9+1]=ncenter;
@@ -339,12 +384,12 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                     aponta[ilinha*9+7]=acoef[3*hjl+2];
                     aponta[ilinha*9+8]=medida_er;
                 } else aponta[ilinha*9+4]=-1;
-                
+
                 //Escrever no ficheiro de Log:
                 pFile3 = fopen ("logARES.txt","a");
                     fprintf(pFile3,"%s%s%s%s%s%s",strLinhaInicial,strLinhaFound,strLinhaResample,strLinhaGuess,strLinhaFitted,strLinhaResult);
                 fclose (pFile3);
-                
+
             } else {
                 printf("\n line not found\n");
                 pFile3 = fopen ("logARES.txt","a");
@@ -397,7 +442,7 @@ void poly_fitn(double xvec[], double yvec[], double err[], long n, long ord, dou
 
     for (j = 0; j < ord; j++)
         coefs[j]=C(j);
-    
+
 }
 
 
@@ -447,8 +492,8 @@ int continuum_det5 (double x[], double y[], double ynorm[], long nxele, double r
                 nvec++;
             }
         }
-	    if (nvec <= 2)
-	    	return -1;
+            if (nvec <= 2)
+                return -1;
         poly_fitn(vecx,vecy,err,nvec,order,coefs);
 
         for(i=0;i<nxele;i++) {
@@ -467,9 +512,9 @@ int continuum_det5 (double x[], double y[], double ynorm[], long nxele, double r
     res[3]=0.;
     if (plots_flag == 1 && PLOT_TYPE != 3)
         plotxyover3(x,y,nxele,x,ynorm,nxele,vecx,vecy,nvec,x[0],x[nxele-1]);
-    
+
     for (i=0; i<nxele; i++)
-	ynorm[i]=y[i]/(res[0]+res[1]*x[i]+res[2]*x[i]*x[i]+res[3]*x[i]*x[i]*x[i]);
+        ynorm[i]=y[i]/(res[0]+res[1]*x[i]+res[2]*x[i]*x[i]+res[3]*x[i]*x[i]*x[i]);
 
 
 return 1;
@@ -537,8 +582,8 @@ void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n,
 //            tutezerostot[ntot+nctot][0]=i;
 //            if (iy[i] < 0.98) {
 //                zerostot[ntot]=i;
-//                if (dy[i] <= 0)		tutezerostot[ntot+nctot][1]=0;
-//                else			tutezerostot[ntot+nctot][1]=0.5;
+//                if (dy[i] <= 0)               tutezerostot[ntot+nctot][1]=0;
+//                else                  tutezerostot[ntot+nctot][1]=0.5;
 //                ntot++;
 //            } else {
 //                contot[nctot]=i;
@@ -554,7 +599,7 @@ void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n,
 
     if (ctot != 0) {
         *ncenter=ctot;
-        for (i=0;i<ctot;i++) 	center[i]=centertot[i];
+        for (i=0;i<ctot;i++)    center[i]=centertot[i];
     } else {
         center[0]=-1;
         *ncenter=0;
@@ -589,7 +634,7 @@ void fitngauss(double t[], double y[], double sigma[], long nvec, double acoef[]
 
   double x_init[para];
   for (i=0; i<para; i++)
-	x_init[i]=acoef[i];
+        x_init[i]=acoef[i];
 
   f.f = &expb_f;
   f.df = &expb_df;
@@ -633,9 +678,9 @@ void fitngauss(double t[], double y[], double sigma[], long nvec, double acoef[]
     double c = GSL_MAX_DBL(1, chi / sqrt(dof));
 
     for (i=0; i<para; i++)
-	{
-	acoef[i]=FIT(i);
-	acoef_er[i]=c*ERR(i);
+        {
+        acoef[i]=FIT(i);
+        acoef_er[i]=c*ERR(i);
         }
 
   printf ("status = %s\n", gsl_strerror (status));
@@ -646,9 +691,8 @@ void fitngauss(double t[], double y[], double sigma[], long nvec, double acoef[]
   gsl_multifit_fdfsolver_free (s);
 }
 
-#ifdef	__cplusplus
+#ifdef  __cplusplus
 }
 #endif
 
-#endif	/* _ARESLIB_H */
-
+#endif  /* _ARESLIB_H */
