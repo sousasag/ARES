@@ -57,15 +57,18 @@ long find_pixel_line(double * xpixels, long npoints, double linha){
     double restest[2];
     double cdelta1=xpixels[1]-xpixels[0];
     double cdelta_last=xpixels[npoints-1]-xpixels[npoints-2];
+    double cdelta_mid=xpixels[npoints/2]-xpixels[npoints/2-1];
     double crval1=xpixels[0];
-    restest[0]=1./cdelta1;
+//    restest[0]=1./cdelta1;
+    restest[0]=1./cdelta_mid;
     restest[1]=-crval1/cdelta1;
     nctest=(long) (restest[0]*linha+restest[1]);
     nctest++;
     // implementar verificação de proximidade da linha. Para o caso de cdeltas nao equidistantes. Neste caso podemos implementar um if para ver se está suficientemente perto.
     // Se nao estiver perto um while até se encontrar perto depois de verificar se tem de somar ou subtrair (cuidado com os limites)
+    // Tive de mudar o cdelta para o meio do espectro pois para o ESPRESSO ficava muito longe..
     if (cdelta1 != cdelta_last) {
-      printf("Refining search for central wavelenght\n");
+      printf("\nRefining search for central wavelenght: Inicial wavelenght: %f, index: %ld\n", xpixels[nctest], nctest);
       if (xpixels[nctest] < linha) {
         while(xpixels[nctest] < linha)
           nctest++;
