@@ -67,7 +67,9 @@ long find_pixel_line(double * xpixels, long npoints, double linha){
     // implementar verificação de proximidade da linha. Para o caso de cdeltas nao equidistantes. Neste caso podemos implementar um if para ver se está suficientemente perto.
     // Se nao estiver perto um while até se encontrar perto depois de verificar se tem de somar ou subtrair (cuidado com os limites)
     // Tive de mudar o cdelta para o meio do espectro pois para o ESPRESSO ficava muito longe..
-    if (cdelta1 != cdelta_last) {
+    if (cdelta1 != cdelta_last || nctest < 0 || nctest > npoints -1) {
+      if (nctest < 0)  nctest = 0;
+      if (nctest > npoints-1)  nctest = npoints-1;
       printf("\nRefining search for central wavelenght: Inicial wavelenght: %f, index: %ld\n", xpixels[nctest], nctest);
       if (xpixels[nctest] < linha) {
         while(xpixels[nctest] < linha)
