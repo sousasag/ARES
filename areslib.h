@@ -10,7 +10,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "fitsio.h"
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_multifit.h>
@@ -39,7 +38,7 @@ void zeroscenterfind(double *, double *, double *, double *, long, long *, long 
 double maxele_vec(double *, long);
 void fitngauss(double *, double *, double *, long,  double *, double *, int, int *);
 
-long find_pixel_line(double * xpixels, long npoints, double linha);
+
 
 void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines);
 
@@ -52,35 +51,7 @@ void clean_zero_gaps(double* flux, long np){
 }
 
 
-long find_pixel_line(double * xpixels, long npoints, double linha){
-    long nctest;
-    double restest[2];
-    double cdelta1=xpixels[1]-xpixels[0];
-    double cdelta_last=xpixels[npoints-1]-xpixels[npoints-2];
-    double cdelta_mid=xpixels[npoints/2]-xpixels[npoints/2-1];
-    double crval1=xpixels[0];
-//    restest[0]=1./cdelta1;
-    restest[0]=1./cdelta_mid;
-    restest[1]=-crval1/cdelta1;
-    nctest=(long) (restest[0]*linha+restest[1]);
-    nctest++;
-    // implementar verificação de proximidade da linha. Para o caso de cdeltas nao equidistantes. Neste caso podemos implementar um if para ver se está suficientemente perto.
-    // Se nao estiver perto um while até se encontrar perto depois de verificar se tem de somar ou subtrair (cuidado com os limites)
-    // Tive de mudar o cdelta para o meio do espectro pois para o ESPRESSO ficava muito longe..
-    if (cdelta1 != cdelta_last || nctest < 0 || nctest > npoints -1) {
-      if (nctest < 0)  nctest = 0;
-      if (nctest > npoints-1)  nctest = npoints-1;
-      printf("\nRefining search for central wavelenght: Inicial wavelenght: %f, index: %ld\n", xpixels[nctest], nctest);
-      if (xpixels[nctest] < linha) {
-        while(xpixels[nctest] < linha)
-          nctest++;
-      } else {
-        while(xpixels[nctest] > linha)
-          nctest--;
-      }
-    }
-    return nctest;
-}
+
 
 
 void cut_max_lines(double* xvec2, double* yvec2, int ncenter, float linha, int max_fit_lines){
