@@ -12,8 +12,6 @@
 extern "C" {
 #endif
 
-
-#include "areslib.h"
 #include <gsl/gsl_interp.h>
 
 struct maskstruct{

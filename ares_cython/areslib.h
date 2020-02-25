@@ -38,7 +38,7 @@ void zeroscenterfind(double *, double *, double *, double *, long, long *, long 
 double maxele_vec(double *, long);
 void fitngauss(double *, double *, double *, long,  double *, double *, int, int *);
 
-void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines);
+void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines);
 
 
 
@@ -92,7 +92,7 @@ void cut_max_lines(double* xvec2, double* yvec2, int ncenter, float linha, int m
 }
 
 
-void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha, FILE * pFile3 , int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines){
+void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double rejt, int* plots_flag2, double smoothder, double distlinha , int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines){
 
     //definicao dos pontos do intervalo local para normalizar o espectro a volta da linha
             int i, status2;
@@ -130,9 +130,9 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                         printf("Problem with the normalization\n Ignoring this line\n");
                         aponta[ilinha*9+4]=-1;
                     //Escrever no ficheiro de Log:
-                    pFile3 = fopen ("logARES.txt","a");
-                    fprintf(pFile3,"%s%s",strLinhaInicial,"Problem with the normalization\n Ignoring this line\n");
-                    fclose (pFile3);
+                    //pFile3 = fopen ("logARES.txt","a");
+                    //fprintf(pFile3,"%s%s",strLinhaInicial,"Problem with the normalization\n Ignoring this line\n");
+                    //fclose (pFile3);
                     //Nothing more to do here
                         return;
                 }
@@ -360,15 +360,15 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 } else aponta[ilinha*9+4]=-1;
 
                 //Escrever no ficheiro de Log:
-                pFile3 = fopen ("logARES.txt","a");
-                    fprintf(pFile3,"%s%s%s%s%s%s",strLinhaInicial,strLinhaFound,strLinhaResample,strLinhaGuess,strLinhaFitted,strLinhaResult);
-                fclose (pFile3);
+                //pFile3 = fopen ("logARES.txt","a");
+                //    fprintf(pFile3,"%s%s%s%s%s%s",strLinhaInicial,strLinhaFound,strLinhaResample,strLinhaGuess,strLinhaFitted,strLinhaResult);
+                //fclose (pFile3);
 
             } else {
                 printf("\n line not found\n");
-                pFile3 = fopen ("logARES.txt","a");
-                fprintf(pFile3,"%s%s",strLinhaInicial,"\n line not found\n");
-                fclose (pFile3);
+                //pFile3 = fopen ("logARES.txt","a");
+                //fprintf(pFile3,"%s%s",strLinhaInicial,"\n line not found\n");
+                //fclose (pFile3);
                 aponta[ilinha*9+4]=-1;
             }
         *plots_flag2=plots_flag;

@@ -17,7 +17,6 @@ extern "C" {
 #include <gsl/gsl_statistics.h>
 #include <gsl/gsl_sort.h>
 #include <gsl/gsl_interp.h>
-#include "areslib.h"
 #include "filesio.h"
 
 #define SMOOTH_NOISE 8
