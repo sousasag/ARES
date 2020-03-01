@@ -40,6 +40,21 @@ void fitngauss(double *, double *, double *, long,  double *, double *, int, int
 
 void getMedida(double * xpixels, double * pixels, long npoints, float linha, double space, double tree, int* plots_flag2, double smoothder, double distlinha, int ilinha, double *aponta, double lambdai, double lambdaf, int cont_flag, int max_fit_lines);
 
+void get_inner_data(double* x, double* y, long nx, double linha, double rej, int* xi1, int* xi2);
+
+void get_inner_data(double* x, double* y, long nx, double linha, double rejt, int* xi1, int* xi2){
+    int xind1=0,xind2=nx-1,hjk;
+    float klo=0.1;
+    for (hjk=0; hjk < nx; hjk++){
+        if ( (y[hjk] > rejt) && (x[hjk]-(linha-klo) > x[xind1] - (linha-klo)) && (x[hjk] - (linha-klo) < 0) )
+            xind1=hjk;
+        if ( (y[hjk] > rejt) && (x[hjk]-(linha+klo) < x[xind2] - (linha+klo)) && (x[hjk] - (linha+klo) > 0) )
+            xind2=hjk;
+    }
+    //printf("Inner pixels: %d, %f ; %d, %f\n", xind1, x[xind1], xind2, x[xind2]);
+    *xi1 = xind1;
+    *xi2 = xind2;
+}
 
 
 void clean_zero_gaps(double* flux, long np){
