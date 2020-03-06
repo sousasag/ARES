@@ -65,7 +65,7 @@ def correct_lambda_rvpy(np.ndarray[double, ndim=1, mode="c"] ll not None,
   rv = get_rv(<double *> np.PyArray_DATA(ll),
               <double *> np.PyArray_DATA(flux),
               ll.shape[0], rvmask)
-
+  print ("RV to correct: ", rv)
   correct_lambda(<double *> np.PyArray_DATA(ll), ll.shape[0], rv)
   return ll
 
@@ -387,8 +387,6 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
     acoef[i*3 + 2] = sigma_const
     constrains.append((0.01,0.2))
 
-
-
   x = x[i1:i2]
   y = ynorm[i1:i2] - 1
   npoints = x.shape[0]
@@ -409,7 +407,6 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
   #mod, out, init = lmfit_ngauss(x,y, acoef)
   mod, out, init = lmfit_ngauss_constrains(x,y, acoef, constrains)
   
-
   values = out.best_values
   params_fit = out.params
   ew = 0.
@@ -420,7 +417,11 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
     pref = "g%02i_" % (i)
     if abs(line - values[pref+'center']) < distline:
       ew+=values[pref+'amplitude']*1000*-1
-      error_ew += params_fit[pref+'amplitude'].stderr*1000
+      #Deal with stderr null values -> 20% error
+      if params_fit[pref+'amplitude'].stderr is None:
+        error_ew += ew*0.2
+      else:
+        error_ew += params_fit[pref+'amplitude'].stderr*1000
       line_depth    = params_fit[pref+'amplitude']/(params_fit[pref+'sigma']*sqrt(2*pi))*-1
       line_sigma    = params_fit[pref+'fwhm']
       line_depth_f  = params_fit[pref+'amplitude']
@@ -428,7 +429,6 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
       line_center_f = params_fit[pref+'center']
       news += 1
       line_is_found += 1
-    
   if line_is_found:
   
     if plots_flag:
@@ -455,7 +455,7 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
 
 
     info_line = (line, ngauss, line_depth, line_sigma, ew, error_ew, line_depth_f, line_sigma_f, line_center_f, news)
-    return ew, error_ew, info_line
+    return (ew, error_ew, info_line)
 
   else:
     #return -1,-1,(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1)    
