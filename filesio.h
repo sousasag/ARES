@@ -238,6 +238,11 @@ void read_fits_file(char * filetest, long* npoints, double** pixels2, double** x
                     status=fits_read_key(fptr, TDOUBLE, "CRVAL1", &caga, card, &status);
                     *crval1=caga;
                     *npoints=naxes[0];
+                    if (*crval1 < 2500){
+                        printf("Assuming that input units are nanometers instead of Angstroms...\n");
+                        *crval1 = *crval1 * 10.;
+                        *cdelta1 = *cdelta1 * 10.;
+                    }
 
                     for (fpixel[1] = naxes[1]; fpixel[1] >= 1; fpixel[1]--) {
                         if (fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], NULL, pixels, NULL, &status) )  /* read row of pixels */
