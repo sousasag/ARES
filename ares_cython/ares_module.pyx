@@ -184,7 +184,7 @@ def continuum_det5py(np.ndarray[double, ndim=1, mode="c"] x not None,
                      np.ndarray[double, ndim=1, mode="c"] y not None,
                      tree):
   """
-  Compute the derivative of the a given x,y data.
+  Compute the local continuum using ARES function the a given x,y data.
   """
   
   ynorm = np.zeros(x.shape[0],dtype=float)
