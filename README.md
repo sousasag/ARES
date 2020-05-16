@@ -78,6 +78,11 @@ Everything should compile smoothly if you use the repository of your OS to
 install the required libraries. If you have installed the libraries manually,
 keep a note on the location of the libraries in your computer.
 
+[![Old youtube installation video](https://img.youtube.com/vi/GEAsM9ICIWg/0.jpg)](https://www.youtube.com/watch?v=GEAsM9ICIWg)
+
+
+
+
 ## 4. Code Compilation
 
 With the libraries installed from the repositories:
