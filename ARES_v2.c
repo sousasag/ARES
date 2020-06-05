@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
     long npoints;
     double *pixels, *xpixels, cdelta1, crval1;
 /* As minhas variaveis*/
-    char filetest[200], fileleitura[200], fileout[200], rvmask[200], tree[200];
+    char filetest[200], fileleitura[200], fileout[200], rvmask[200], tree[200], filerejt[200] = "lambda_rejt.opt"; 
     double lambdai, lambdaf, smoothder, rejt, distlinha, miniline;
     double space;
     int plots_flag, plots_stop,nchar;
@@ -132,10 +132,11 @@ int main(int argc, char **argv) {
     crval1=xpixels[0];
     printf("ponto %d, lambda: %f \n",1000,xpixels[1000]);
 
-    rejt=get_rejt(tree, xpixels, pixels, npoints);
+    rejt=get_rejt(tree, xpixels, pixels, npoints, filerejt);
 
     if (rejt == -2)
         printf("USING lambda_rejt.opt file to rejt dependence on lambda\n");
+
     else {
         if (rejt == -3)
             printf("Not performing local normalization\n");
@@ -161,7 +162,7 @@ int main(int argc, char **argv) {
     fprintf(pFile3,"\nLog Result ARES...\n");
     fprintf(pFile3,"Velocidade radial: %f\n", radvel);
     if (rejt == -2)
-        fprintf(pFile3,"Rejt used for computations: USING lambda_rejt.opt file to rejt dependence on lambda\n");
+        fprintf(pFile3,"USING a file to get the rejt dependence on lambda: \nfile: %s\n", filerejt);
     else {
         if (rejt == -3)
            fprintf(pFile3,"Not performing local normalization\n");
@@ -212,7 +213,7 @@ int main(int argc, char **argv) {
 
         if ( (linha > lambdai+space) && (linha < lambdaf-space) )  {        //não mede riscas nos limites do espectro
             if (rejt == -2) {
-                rejtin = get_rejt_lambda_file(linha);
+                rejtin = get_rejt_lambda_file(linha, filerejt);
                 printf("\nUsing rejt = %f for line: %f\n", rejtin, linha);
             }
             getMedida(xpixels, pixels, npoints, linha, space, rejtin, &plots_flag, smoothder, distlinha, pFile3, fgh, aponta, lambdai, lambdaf, CONT_FLAG, MAX_FIT_LINES);

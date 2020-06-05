@@ -26,17 +26,16 @@ double median(double* array, long nelem);
 double stddev(double* array, long nelem);
 void remove_outlier(double* arrayin, long nin,double* arrayout,long* nout, double out_sigma);
 double compute_sn_range(double li,double lf,double* lambda, double* flux, long np);
-double get_rejt(char* tree, double* lambda, double* flux, long np);
+double get_rejt(char* tree, double* lambda, double* flux, long np, char* filerejt);
 double get_rejt_from_sn(double sn);
-double get_rejt_lambda_file(double lambda);
+double get_rejt_lambda_file(double lambda, char* filerejt);
 
-double get_rejt_lambda_file(double lambda){
+double get_rejt_lambda_file(double lambda, char*filerejt){
     double *lambdavec, *rejtvec;
     double cdelta1mean=0;
     double crval1=0;
     long npoints=0;
-    char filetest[50] = "lambda_rejt.opt";
-    read_ascii_file(filetest, &npoints, &rejtvec, &lambdavec, &cdelta1mean, &crval1);
+    read_ascii_file(filerejt, &npoints, &rejtvec, &lambdavec, &cdelta1mean, &crval1);
 /*    int i;
     for (i=0; i<npoints;i++){
         printf("%d - %f - %f\n", i,lambdavec [i], rejtvec[i]);
@@ -68,7 +67,7 @@ double get_rejt_from_sn(double sn){
 
 
 
-double get_rejt(char* tree, double* lambda, double* flux, long np){
+double get_rejt(char* tree, double* lambda, double* flux, long np, char* filerejt){
     double rejt=0;
     char* pch;
     int i;
@@ -77,12 +76,19 @@ double get_rejt(char* tree, double* lambda, double* flux, long np){
         if (rejt >= 1) rejt=get_rejt_from_sn((double)rejt);
         printf("Computed rejt: %f \n", rejt);
     } else {
-        printf("Computing rejt for spectrum...");
         char temp[200];
         strcpy(temp, tree);
         printf("Tree: %s\n",temp);
         pch = strtok (temp,";");
         int nranges=atoi(pch);
+        if ( nranges == -2 ) {
+            printf("Using specific file for rejt dependence on wavelength.\n");
+            pch = strtok (NULL,"' ");
+            strcpy(filerejt, pch);
+            pch = strtok (NULL, "' ");
+            return nranges;
+        }
+        printf("Computing rejt for spectrum...");
         printf("Nranges: %d\n", nranges);
         double snvec[nranges]; double snmax=0;
         for (i=0;i<nranges;i++){

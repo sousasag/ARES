@@ -216,15 +216,23 @@ solar-type stars, and therefore the user can take these as our recommendation.
 An extra option is to have the `rejt` dependent on the wavelength for this we
 should use the following option:
 
-rejt=-2
+    rejt=-2
 
 Note that for this to work the file `lambda_rejt.opt` should in the same
 directory. An example for this file is presented bellow.
 
-rejt=-3
+Alternatively you can also provide the name of another file with similar information 
+by using the following example:
 
-It will not make the local normalization. However this is still in testing 
-phase. Be caution with this option
+    rejt=-2;'other_lambda_rejt.opt'
+
+
+To skip the local normalization you can try the following:
+
+    rejt=-3
+
+This will not make the local normalization. And apply a "fake" rejt of 0.999. However this is still in testing 
+phase. Be caution with this option since you don't control the continuum position.
 
 ### 5.3. rvmask
 
@@ -348,7 +356,7 @@ example 2:
     4080.88  	line5
     4114.94  	line6
 
-## 6-OUTPUT RESULT(`test.ares_ori`):
+## 7- OUTPUT RESULT(`test.ares_ori`):
 
 In comparison with the last version there will be an extra colunm with the
 estimated error on the equivalent width (column 6)
