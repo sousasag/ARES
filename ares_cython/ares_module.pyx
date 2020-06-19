@@ -31,7 +31,7 @@ cdef extern from "filesio.h":
 
 
 cdef extern from "sn_rejt_estimator.h":
-  double get_rejt(char* tree, double* ll, double* flux, long npoints)
+  double get_rejt(char* tree, double* ll, double* flux, long npoints, char* filerejt)
 
 cdef extern from "rvcor.h":
   void correct_lambda(double* ll, int npoints, double vrad)
@@ -80,10 +80,11 @@ def get_rejtpy(tree,
   """
   Getting the rejt value from the inputed string in config.file
   """
+  filerejt = ""
   return get_rejt(tree,
                   <double *> np.PyArray_DATA(ll),
                   <double *> np.PyArray_DATA(flux), 
-                  ll.shape[0])
+                  ll.shape[0], filerejt)
 
 
 #---------------------------------------------------------------------
