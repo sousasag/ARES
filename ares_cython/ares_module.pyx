@@ -49,7 +49,7 @@ def get_rv_py(np.ndarray[double, ndim=1, mode="c"] ll not None,
   """
   rv = get_rv(<double *> np.PyArray_DATA(ll),
               <double *> np.PyArray_DATA(flux),
-              ll.shape[0], rvmask)
+              ll.shape[0], rvmask.encode('utf-8'))
   return rv
 
 
@@ -64,7 +64,7 @@ def correct_lambda_rvpy(np.ndarray[double, ndim=1, mode="c"] ll not None,
   """
   rv = get_rv(<double *> np.PyArray_DATA(ll),
               <double *> np.PyArray_DATA(flux),
-              ll.shape[0], rvmask)
+              ll.shape[0], rvmask.encode('utf-8'))
   print ("RV to correct: ", rv)
   correct_lambda(<double *> np.PyArray_DATA(ll), ll.shape[0], rv)
   return ll
@@ -81,7 +81,7 @@ def get_rejtpy(tree,
   Getting the rejt value from the inputed string in config.file
   """
   filerejt = ""
-  return get_rejt(tree,
+  return get_rejt(tree.encode('utf-8'),
                   <double *> np.PyArray_DATA(ll),
                   <double *> np.PyArray_DATA(flux), 
                   ll.shape[0], filerejt)
