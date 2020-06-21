@@ -80,7 +80,7 @@ def get_rejtpy(tree,
   """
   Getting the rejt value from the inputed string in config.file
   """
-  filerejt = ""
+  filerejt = b""
   return get_rejt(tree.encode('utf-8'),
                   <double *> np.PyArray_DATA(ll),
                   <double *> np.PyArray_DATA(flux), 
