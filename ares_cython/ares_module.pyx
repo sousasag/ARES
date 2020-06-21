@@ -159,6 +159,7 @@ def zeroscenterfindpy(np.ndarray[double, ndim=1, mode="c"] y not None,
                   <int*> np.PyArray_DATA(center_c),
                   <int*> np.PyArray_DATA(ncenter_c),
                   rejt)
+  print(center_c)
   centerout = center_c[0:ncenter_c[0]].copy()
   return centerout
 
@@ -335,6 +336,7 @@ def find_lines(x,y, smoothder, line, tree, distline, rejt=0.98):
   ddy = ddy[i1:i2]
 
   center = zeroscenterfindpy(y,iy,dy,ddy,rejt)
+  print(center)
   if len(center) < 1:
     return (np.array([]),np.array([]),-1,-1)
   center2 = [center[0]]
@@ -371,7 +373,7 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
   y = flux[nx1test:nx2test].copy()
 
   ynorm,res = continuum_det5py(x,y,tree)
-  lc, ld, i1, i2 =  find_lines(x,ynorm, 4, line, tree, distline)
+  lc, ld, i1, i2 =  find_lines(x,ynorm, smoothder, line, tree, distline)
   if lc.shape[0] < 1:
     print(line, "line not found")
     return (-1,-1, -1)
@@ -387,6 +389,7 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
     constrains.append((lc[i]-5*distline,lc[i]+5*distline))
     acoef[i*3 + 2] = sigma_const
     constrains.append((0.01,0.2))
+    print(lc[i])
 
   x = x[i1:i2]
   y = ynorm[i1:i2] - 1
@@ -404,10 +407,8 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
   y = yl
 
   #np.savetxt('test.out', (x,y))
-  
   #mod, out, init = lmfit_ngauss(x,y, acoef)
   mod, out, init = lmfit_ngauss_constrains(x,y, acoef, constrains)
-  
   values = out.best_values
   params_fit = out.params
   ew = 0.

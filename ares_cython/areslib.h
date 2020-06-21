@@ -34,7 +34,7 @@ void poly_fitn(double *, double *, double *, long, long, double *);
 int continuum_det5 (double *, double *, double *, long, double *, double, int);
 void deriv(double *, double *, double *, long);
 void smooth(double *, long, int, double *);
-void zeroscenterfind(double *, double *, double *, double *, long, long *, long *, double rejt);
+void zeroscenterfind(double *, double *, double *, double *, int, int *, int *, double rejt);
 double maxele_vec(double *, long);
 void fitngauss(double *, double *, double *, long,  double *, double *, int, int *);
 
@@ -530,9 +530,9 @@ void smooth(double vec[], long n, int w, double svec[]) {
 }
 
 
-void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n, long center[], long *ncenter, double rejt) {
+void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], int n, int center[], int *ncenter, double rejt) {
     double zerostot[n], contot[n], tutezerostot[n][2], maxdy;
-    long ntot=0, nctot=0, ctot=0, i, centertot[n];
+    int ntot=0, nctot=0, ctot=0, i, centertot[n];
     int signal=0, signalc=0, signal_ant, signalc_ant;
     if (y[0] == abs(y[0]))
         signal=1;
@@ -550,7 +550,7 @@ void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n,
 
     double cut_lines = 0.98;
     double cut_rejt = 1. - (1.-rejt) * 5.;
-    printf("%f    %f \n", cut_rejt, cut_lines);
+    //printf("%f    %f \n", cut_rejt, cut_lines);
     if (cut_rejt > cut_lines) {
         cut_lines = cut_rejt;
     }
@@ -562,6 +562,7 @@ void zeroscenterfind(double y[], double iy[], double dy[], double ddy[], long n,
 
         if ( (signalc != signalc_ant) && (dy[i] > 0.01*maxdy) && (iy[i] < cut_lines) && (ddy[i] < -0.1) ) {
             centertot[ctot]=i;
+            //printf("OLHA: %f -- %d -- ctot: %d\n", y[i], i, ctot);
             ctot++;
         }
 //        signal=0;
