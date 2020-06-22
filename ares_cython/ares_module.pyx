@@ -404,6 +404,8 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
   y = yl
 
   #np.savetxt('test.out', (x,y))
+  print("Acoef:", acoef)
+
   #mod, out, init = lmfit_ngauss(x,y, acoef)
   mod, out, init = lmfit_ngauss_constrains(x,y, acoef, constrains)
   values = out.best_values
@@ -489,7 +491,7 @@ def getMedida_coefs(x, ynorm, lc, ld, distline):
   """
   acoef = np.zeros(lc.shape[0]*3)
   constrains = []
-  sigma_const = 0.05*2
+  sigma_const = 0.05
   for i in range(lc.shape[0]):
 # We may need to play a bit with the constrains
     acoef[i*3] = (ld[i] - 1) * (sigma_const*sqrt(2*pi))
@@ -561,7 +563,8 @@ def getMedida_compile_ew(out, x, y, init, line, distline, plots_flag = False):
   error_ew = 0.
   news = 0
   line_is_found = 0
-  for i in range(0,len(out.params)/nparam_gauss):
+#  for i in range(0,len(out.params)/nparam_gauss):
+  for i in range(0,len(out.params)/5):
     pref = "g%02i_" % (i)
     if abs(line - values[pref+'center']) < distline:
       ew+=values[pref+'amplitude']*1000*-1
@@ -687,6 +690,71 @@ def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_
 
 
 
+#                double yfit2[nx];
+#                for (i=0;i<nx;i++) {
+#                    yfit2[i]=1.0;
+#                    for (j=0;j<ncenter;j++)
+#                        yfit2[i]+=acoef[j*3]* exp (- acoef[j*3+1] * (x[i]-acoef[j*3+2]) * (x[i]-acoef[j*3+2]) );
+
+def get_yfit(x,acoef):
+  yfit2=x*0
+  for j in range(len(acoef)/3):
+    yfit2+=acoef[j*3]*np.exp(-acoef[j*3+1]*(x-acoef[j*3+2])**2.)
+  return yfit2
+
+
+
+def getMedida_pyfit_sep2(ll, flux, line, space, rejt, smoothder, distline, plots_flag=False, lmfit_flag = True):
+  """
+  Uses the functions to get the EW measurement as in ARES with the difference of the gaussian fitting using lmfit here.
+  """
+  lc, ld, i1, i2, x, ynorm = getMedida_lines(ll, flux, line, space, rejt, distline)
+
+  if lc.shape[0] < 1:
+    print (line, "line not found")
+    return (-1,-1, -1)    
+
+  if lmfit_flag:
+    acoef, constrains = getMedida_coefs(x, ynorm, lc, ld, distline)
+    print("Acoef:", acoef)
+    gauss = None
+    x,y = getMedida_local_spec(x, ynorm, i1, i2)
+    mod, out, init = getMedida_fitgauss(x,y, acoef, constrains)
+    ew, error_ew, info_line = getMedida_compile_ew(out, x, y, init, line, distline)
+    bestfit = out.best_fit
+
+  else:
+    acoef = getMedida_coefs_original(x, ynorm, lc, ld, distline)
+    print("Acoef:", acoef)
+    constrains=None
+    x,y = getMedida_local_spec(x, ynorm, i1, i2)
+    gauss = y*0+1-rejt
+    init = get_yfit(x,acoef)
+    (acoef, acoef_er, status) = fitngausspy(x, y, gauss, acoef)
+    bestfit = get_yfit(x,acoef)
+    ew, error_ew, info_line = getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline)
+  if plots_flag:
+
+    #print(out.fit_report(min_correl=0.5))
+    print ("-----------------------\n")
+    print ("line: %6.2f" % (line))
+    print ("EW: %6.2f" % (ew))
+    print ("Error EW: %6.2f" % (error_ew))
+    #print ("News: %2i" % (news))
+    #print ("Ngauss: %2i" % (len(out.params)/5))
+    print ("-----------------------\n")
+
+    plt.plot(x, y+1)
+    plt.plot(x, init+1, 'k--')
+    plt.plot(x, bestfit+1, 'r-')
+    plt.axvline(line)
+    plt.show()
+
+
+  #np.savetxt('test.out', (x,y)) 
+
+  return ew, error_ew, info_line
+
 
 
 def find_fit_guess(ll, flux, line, space, rejt, smoothder, distline, plots_flag):
@@ -701,7 +769,7 @@ def find_fit_guess(ll, flux, line, space, rejt, smoothder, distline, plots_flag)
 
   ynorm,res = continuum_det5py(x,y,rejt)
 
-  lc, ld, i1, i2 =  find_lines(x,ynorm, 4, line, rejt, distline)
+  lc, ld, i1, i2 =  find_lines(x,ynorm, smoothder, line, rejt, distline)
   if lc.shape[0] < 1:
     print (line, "line not found")
     return (-1,-1, -1)
@@ -717,6 +785,7 @@ def interface_fit_ngauss(x, y, line, distline, acoef, lmfit_flag = True, constra
     mod, out, init = getMedida_fitgauss(x,y, acoef, constrains)
     ew, error_ew, info_line = getMedida_compile_ew(out, x, y, init, line, distline)
   else:
+    print("Acoef:", acoef)
     (acoef, acoef_er, status) = fitngausspy(x, y, gauss, acoef)
     ew, error_ew, info_line = getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline)
   return ew, error_ew, info_line
