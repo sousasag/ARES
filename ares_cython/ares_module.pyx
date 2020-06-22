@@ -708,7 +708,13 @@ def getMedida_pyfit_sep2(ll, flux, line, space, rejt, smoothder, distline, plots
   """
   Uses the functions to get the EW measurement as in ARES with the difference of the gaussian fitting using lmfit here.
   """
+
   lc, ld, i1, i2, x, ynorm = getMedida_lines(ll, flux, line, space, rejt, distline)
+
+  if plots_flag:
+    plt.plot(x, ynorm)
+    plt.show()
+
 
   if lc.shape[0] < 1:
     print (line, "line not found")
@@ -716,7 +722,7 @@ def getMedida_pyfit_sep2(ll, flux, line, space, rejt, smoothder, distline, plots
 
   if lmfit_flag:
     acoef, constrains = getMedida_coefs(x, ynorm, lc, ld, distline)
-    print("Acoef:", acoef)
+    print("Acoef guess:", acoef)
     gauss = None
     x,y = getMedida_local_spec(x, ynorm, i1, i2)
     mod, out, init = getMedida_fitgauss(x,y, acoef, constrains)
@@ -725,12 +731,15 @@ def getMedida_pyfit_sep2(ll, flux, line, space, rejt, smoothder, distline, plots
 
   else:
     acoef = getMedida_coefs_original(x, ynorm, lc, ld, distline)
-    print("Acoef:", acoef)
+    for i in np.arange(0,len(acoef),3):
+      print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
     constrains=None
     x,y = getMedida_local_spec(x, ynorm, i1, i2)
     gauss = y*0+1-rejt
     init = get_yfit(x,acoef)
     (acoef, acoef_er, status) = fitngausspy(x, y, gauss, acoef)
+    for i in np.arange(0,len(acoef),3):
+      print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
     bestfit = get_yfit(x,acoef)
     ew, error_ew, info_line = getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline)
   if plots_flag:
