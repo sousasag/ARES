@@ -6,6 +6,7 @@ import numpy as np
 from numpy import sqrt, pi, exp, linspace, loadtxt
 from lmfit.models import GaussianModel
 import matplotlib.pyplot as plt
+from astropy.io import fits
 
 cimport numpy as np
 
@@ -477,8 +478,8 @@ def getMedida_lines(ll, flux, line, space, rejt, distline, smoothder=4):
   nx1test = find_pixel_linepy(ll, line-space)
   nx2test = find_pixel_linepy(ll, line+space)
 
-  x = ll[nx1test:nx2test].copy()
-  y = flux[nx1test:nx2test].copy()
+  x = ll[nx1test-1:nx2test].copy()
+  y = flux[nx1test-1:nx2test].copy()
   ynorm,res = continuum_det5py(x,y,rejt)
   if len(ynorm) <= 1:
     return np.array([]),np.array([]),-1,-1,x,y
@@ -667,7 +668,7 @@ def getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline, plots_f
     return (-1,-1, -2)
 
 
-def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_flag):
+def getMedida_pyfit_sep_old(ll, flux, line, space, rejt, smoothder, distline, plots_flag):
   """
   Uses the functions to get the EW measurement as in ARES with the difference of the gaussian fitting using lmfit here.
   """
@@ -704,65 +705,6 @@ def get_yfit(x,acoef):
 
 
 
-def getMedida_pyfit_sep2(ll, flux, line, space, rejt, smoothder, distline, plots_flag=False, lmfit_flag = True):
-  """
-  Uses the functions to get the EW measurement as in ARES with the difference of the gaussian fitting using lmfit here.
-  """
-
-  lc, ld, i1, i2, x, ynorm = getMedida_lines(ll, flux, line, space, rejt, distline)
-
-  if plots_flag:
-    plt.plot(x, ynorm)
-    plt.show()
-
-
-  if lc.shape[0] < 1:
-    print (line, "line not found")
-    return (-1,-1, -1)    
-
-  if lmfit_flag:
-    acoef, constrains = getMedida_coefs(x, ynorm, lc, ld, distline)
-    print("Acoef guess:", acoef)
-    gauss = None
-    x,y = getMedida_local_spec(x, ynorm, i1, i2)
-    mod, out, init = getMedida_fitgauss(x,y, acoef, constrains)
-    ew, error_ew, info_line = getMedida_compile_ew(out, x, y, init, line, distline)
-    bestfit = out.best_fit
-
-  else:
-    acoef = getMedida_coefs_original(x, ynorm, lc, ld, distline)
-    for i in np.arange(0,len(acoef),3):
-      print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
-    constrains=None
-    x,y = getMedida_local_spec(x, ynorm, i1, i2)
-    gauss = y*0+1-rejt
-    init = get_yfit(x,acoef)
-    (acoef, acoef_er, status) = fitngausspy(x, y, gauss, acoef)
-    for i in np.arange(0,len(acoef),3):
-      print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
-    bestfit = get_yfit(x,acoef)
-    ew, error_ew, info_line = getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline)
-  if plots_flag:
-
-    #print(out.fit_report(min_correl=0.5))
-    print ("-----------------------\n")
-    print ("line: %6.2f" % (line))
-    print ("EW: %6.2f" % (ew))
-    print ("Error EW: %6.2f" % (error_ew))
-    #print ("News: %2i" % (news))
-    #print ("Ngauss: %2i" % (len(out.params)/5))
-    print ("-----------------------\n")
-
-    plt.plot(x, y+1)
-    plt.plot(x, init+1, 'k--')
-    plt.plot(x, bestfit+1, 'r-')
-    plt.axvline(line)
-    plt.show()
-
-
-  #np.savetxt('test.out', (x,y)) 
-
-  return ew, error_ew, info_line
 
 
 
@@ -821,5 +763,97 @@ def getMedida_differential_EWs(spec1, spec2, rejt1, rejt2, line, space, smoothde
   pass
 
 
+def read_spec(specfits):
+  if specfits[-4:].lower() == 'fits':
+    hdulist    = fits.open(specfits)
+    img_header = hdulist[0].header  
+    img_data   = hdulist[0].data
+    crval1     = hdulist[0].header['CRVAL1'] 
+    cdelta1    = hdulist[0].header['CDELT1'] 
+    npoints    = hdulist[0].header['NAXIS1'] 
+    ll   = np.arange(0,npoints)*cdelta1+crval1
+    flux = np.array(img_data, dtype = 'double')
+    hdulist.close()
+  else:
+    ll, flux = np.loadtxt(specfits, unpack=True)
+    flux = np.array(flux, dtype = 'double')
+    ll = np.array(ll, dtype = 'double')
+  return ll,flux
+
+
+def get_medida_original(specfits, line, smoothder = 4, distline = 0.1, space=3.0, 
+                        rvmask = "3,6021.8,6024.06,6027.06,6024.06,20",
+                        rejt_str ="3;5764,5766,6047,6053,6068,6076", lmfit_flag=False, plots_flag=False):
+  """
+  This is the top level function that can be used to replicate directly the ARES in C implementation
+  It also some options to use lmfit with a small improvement in the fitting
+  There is also the possibility to vizualize the fit
+  """
+  ll, flux = read_spec(specfits)
+  ll = correct_lambda_rvpy(ll.copy(), flux, rvmask) 
+  rejt = get_rejtpy(rejt_str, ll, flux)
+  print(rejt)
+  print("Measuring line: ", line)
+  res = getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_flag, lmfit_flag=lmfit_flag)
+  return res
   
 
+def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_flag=False, lmfit_flag = True):
+  """
+  Uses the functions to get the EW measurement as in ARES with the difference of the gaussian fitting using lmfit here.
+  """
+
+  lc, ld, i1, i2, x, ynorm = getMedida_lines(ll, flux, line, space, rejt, distline)
+
+  if lc.shape[0] < 1:
+    print (line, "line not found")
+    return (-1,-1, -1)    
+
+  if lmfit_flag:
+    acoef, constrains = getMedida_coefs(x, ynorm, lc, ld, distline)
+    print("Acoef guess:", acoef)
+    gauss = None
+    xl,yl = getMedida_local_spec(x, ynorm, i1, i2)
+    mod, out, init = getMedida_fitgauss(xl,yl, acoef, constrains)
+    ew, error_ew, info_line = getMedida_compile_ew(out, xl, yl, init, line, distline)
+    bestfit = out.best_fit
+
+  else:
+    acoef = getMedida_coefs_original(x, ynorm, lc, ld, distline)
+    for i in np.arange(0,len(acoef),3):
+      print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
+    constrains=None
+    # This function "improves" the continuum for the fit of the lines. Still not sure if is fair or not. 
+    # But I am inclined for its use, anyway, here we keep the ares algorigthm
+    #x,y = getMedida_local_spec(x, ynorm, i1, i2)
+    xl = x[i1:i2]
+    yl = ynorm[i1:i2] - 1
+    gauss = yl*0+1-rejt
+    init = get_yfit(xl,acoef)
+    (acoef, acoef_er, status) = fitngausspy(xl, yl, gauss, acoef)
+    for i in np.arange(0,len(acoef),3):
+      print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
+    bestfit = get_yfit(xl,acoef)
+    ew, error_ew, info_line = getMedida_compile_ew_original(acoef, acoef_er, xl, yl, line, distline)
+  if plots_flag:
+
+    #print(out.fit_report(min_correl=0.5))
+    print ("-----------------------\n")
+    print ("line: %8.4f" % (line))
+    print ("EW: %8.4f" % (ew))
+    print ("Error EW: %8.4f" % (error_ew))
+    #print ("News: %2i" % (news))
+    #print ("Ngauss: %2i" % (len(out.params)/5))
+    print ("-----------------------\n")
+
+
+    plt.plot(x, ynorm)
+    plt.plot(xl, init+1, 'k--')
+    plt.plot(xl, bestfit+1, 'r-')
+    plt.axvline(line)
+    plt.show()
+
+
+  #np.savetxt('test.out', (x,y)) 
+
+  return ew, error_ew, info_line
