@@ -798,7 +798,7 @@ def get_medida_original(specfits, line, smoothder = 4, distline = 0.1, space=3.0
   return res
   
 
-def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_flag=False, lmfit_flag = True):
+def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_flag=False, lmfit_flag = True, local_wings_fit = 0):
   """
   Uses the functions to get the EW measurement as in ARES with the difference of the gaussian fitting using lmfit here.
   """
@@ -825,9 +825,11 @@ def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_
     constrains=None
     # This function "improves" the continuum for the fit of the lines. Still not sure if is fair or not. 
     # But I am inclined for its use, anyway, here we keep the ares algorigthm
-    #x,y = getMedida_local_spec(x, ynorm, i1, i2)
-    xl = x[i1:i2]
-    yl = ynorm[i1:i2] - 1
+    if local_wings_fit == 0:
+      xl = x[i1:i2]
+      yl = ynorm[i1:i2] - 1
+    else:
+      x,y = getMedida_local_spec(x, ynorm, i1, i2) 
     gauss = yl*0+1-rejt
     init = get_yfit(xl,acoef)
     (acoef, acoef_er, status) = fitngausspy(xl, yl, gauss, acoef)

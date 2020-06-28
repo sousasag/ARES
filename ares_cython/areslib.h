@@ -8,6 +8,10 @@
 #ifndef _ARESLIB_H
 #define _ARESLIB_H
 
+//// local spec wings type:
+//#define LOCAL_WINGS_FIT 0 // (ARES Original) No extended wings to fit
+#define LOCAL_WINGS_FIT 1 // New ARES - extending the wings (3x) to fit ones
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -264,13 +268,39 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                     npara++;
                 }
 
-                double xfit[nlin], yfit[nlin], sigma[nlin];
-                for (i=0;i<nlin;i++) {
-                    xfit[i]=xlin[i];
-                    yfit[i]=iylin[i]-1.0;
-//                    sigma[i]=0.1;   //NEED to DEFINE a better sigma (dependent on the S/N)
-                    sigma[i]=1.-rejt;   //NEED to DEFINE a better sigma (dependent on the S/N)
+                int nlin2;
+                if (LOCAL_WINGS_FIT == 0)
+                    nlin2 = nlin;
+                else
+                    nlin2 = 3*nlin;
+                double xfit[nlin2], yfit[nlin2], sigma[nlin2];
+                
+                if (LOCAL_WINGS_FIT == 0) {
+                    for (i=0;i<nlin;i++) {
+                        xfit[i]=xlin[i];
+                        yfit[i]=iylin[i]-1.0;
+    //                    sigma[i]=0.1;   //NEED to DEFINE a better sigma (dependent on the S/N)
+                        sigma[i]=1.-rejt;   //NEED to DEFINE a better sigma (dependent on the S/N)
+                    }
+                } else {
+                    for (i=0;i<nlin;i++) {
+                        xfit[i]=x[xind1-nlin+i];
+                        yfit[i]=0;
+                        sigma[i]=1.-rejt;
+                    }
+                    for (i=nlin;i<2*nlin;i++) {
+                        xfit[i]=x[xind1-nlin+i];
+                        yfit[i]=y[xind1-nlin+i]-1.0;
+                        sigma[i]=1.-rejt;
+                    }
+                    for (i=2*nlin;i<3*nlin;i++) {
+                        xfit[i]=x[xind1-nlin+i];
+                        yfit[i]=0;
+                        sigma[i]=1.-rejt;
+                    }
                 }
+
+                //plotxyover2(xfit, yfit,nlin2, xfit, yfit,nlin2,xfit[0], xfit[nlin2-1]);
 
                 char strLinhaGuess[para*65+30];
                 strcpy(strLinhaGuess,"\n GUESS COEFS :\n");
@@ -281,7 +311,7 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 }
                 printf("%s",strLinhaGuess);
 
-                fitngauss(xfit,yfit,sigma,nlin,acoef,acoef_er,para,&status2);
+                fitngauss(xfit,yfit,sigma,nlin2,acoef,acoef_er,para,&status2);
 
                 char strLinhaFitted[para*200+30];
                 strcpy(strLinhaFitted,"\n FITTED COEFS :\n");
