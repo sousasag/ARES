@@ -9,8 +9,8 @@
 #define _ARESLIB_H
 
 //// local spec wings type:
-//#define LOCAL_WINGS_FIT 0 // (ARES Original) No extended wings to fit
-#define LOCAL_WINGS_FIT 0 // New ARES - extending the wings (3x) to fit ones
+#define LOCAL_WINGS_FIT 0 // (ARES Original) No extended wings to fit
+//#define LOCAL_WINGS_FIT 1 // New ARES - extending the wings (3x) to fit ones
 
 #include <string.h>
 #include <stdio.h>
