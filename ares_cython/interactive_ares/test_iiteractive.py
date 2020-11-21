@@ -141,11 +141,13 @@ print ("-----------------------\n")
 
 #plt.plot(ll_l, flux_l)
 plt.plot(ll_l, (init+1)*(m*ll_l+c), 'k--')
-plt.plot(ll_l, (bestfit+1)*(m*ll_l+c), 'r-')
+plt.plot(ll_l, (bestfit+1)*(m*ll_l+c), 'g-')
 plt.axvline(line)
-
+print(info_line)
+strline = "%8.3f   %d   %.5f   %.5f   %.5f   %.5f   %.5f   %.5f   %7.2f   %d\n" % info_line 
+print(strline)
+fileo = open(fileout, "a")
+fileo.write(strline)
+fileo.close()
 tellme("Complete!! You may close the plot...")
 plt.show()
-#(lineo, ngauss, line_depth, line_sigma, ew, error_ew, line_depth_f, line_sigma_f, line_center_f, news) = info_line
-print(info_line)
-
