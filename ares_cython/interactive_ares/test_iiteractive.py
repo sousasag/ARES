@@ -1,7 +1,6 @@
 from astropy.io import fits
 import numpy as np
 import matplotlib.pyplot as plt
-
 import sys
 
 sys.path.insert(0, '/home/sousasag/Programas/GIT_projects/ARES/ares_cython') 
@@ -62,65 +61,33 @@ ax = fig.add_subplot(111)
 ax.plot(ll,flux)
 ax.set_xlim(line-space, line+space)
 
-plt.setp(plt.gca(), autoscale_on=False)
-while True:
-    tellme('Select two corners of zoom, middle mouse button to finish')
-    pts = plt.ginput(2, timeout=-1)
-    if len(pts) < 2:
-        break
-    (x0, y0), (x1, y1) = pts
-    xmin, xmax = sorted([x0, x1])
-    ymin, ymax = sorted([y0, y1])
-    plt.xlim(xmin, xmax)
-    plt.ylim(ymin, ymax)
-
-tellme('Zoom Done!')
+tellme('Zoom in then hit SPACE!')
+zoom_ok = False
+while not zoom_ok:
+    zoom_ok = plt.waitforbuttonpress(timeout=-1)
 
 while True:
     pts = []
     while len(pts) < 2:
-        tellme('Select 2 continuum points with mouse (left -> right)')
+        tellme('Select left & right continuum points')
         pts = np.asarray(plt.ginput(2, timeout=-1))
         if len(pts) < 2:
             tellme('Too few points, starting over')
             time.sleep(1)  # Wait a second
-#    if len(pts) > 1:
-#        ax.plot()
     print(pts)
     ax.plot(pts[:,0],pts[:,1],c='k')
-    tellme('Happy? Key click for yes, mouse click for no')
-
+    tellme('Hit space to accept, mouse click to repeat!')
     if plt.waitforbuttonpress():
         break
-
 cont=pts
 
-tellme("How many gaussians? (answer in terminal)")
-ngauss = input("\n\nHow many gaussians?:")
-ngauss = int(ngauss)
-while True:
-    pts = []
-    while len(pts) < ngauss:
-        tellme('Select the %d gauss to fit' % (ngauss))
-        pts = np.asarray(plt.ginput(ngauss, timeout=-1))
-        if len(pts) < ngauss:
-            tellme('Too few points, starting over')
-            time.sleep(1)  # Wait a second
-#    if len(pts) > 1:
-#        ax.plot()
-    print(pts)
-    ax.scatter(pts[:,0],pts[:,1],marker='o')
-    tellme('Happy? Key click for yes, mouse click for no')
+tellme("Mark the Gauss centers! Middle click to stop")
+pts = np.asarray(plt.ginput(-1, timeout=-1))
+print(pts)
+ngauss = len(pts)
 
-    if plt.waitforbuttonpress():
-        break
-
-#tellme("Complete!! You may close the plot...")
-
-#plt.show()
-
+ax.scatter(pts[:,0],pts[:,1],marker='o')
 gauss=pts
-
 
 print("Cont:", cont)
 print("Gauss:", gauss)
@@ -140,42 +107,26 @@ print(cont[1,0], ll[i2])
 
 ll_l,flux_l = ares.getMedida_local_spec(ll, fluxn, i1, i2)
 
-#plt.plot(ll_l,flux_l)
-#plt.show()
 
 #Original acoef
 acoef = np.zeros(ngauss*3)
 sigma_const = 400.
 for i in range(ngauss):
 # We may need to play a bit with the constrains
-    
     acoef[i*3 + 1] = sigma_const
     acoef[i*3 + 2] = gauss[i][0]
     ig = np.where(ll > gauss[i][0])[0][0]
     acoef[i*3] = (fluxn[ig] - 1)
-
 print(acoef)
 
 gauss = flux_l*0+1-rejt
 init = ares.get_yfit(ll_l,acoef)
 
 
-#plt.plot(ll_l,flux_l)
-#plt.plot(ll_l,init)
-#plt.show()
-
-
-
 (acoef, acoef_er, status) = ares.fitngausspy(ll_l, flux_l, gauss, acoef)
 for i in np.arange(0,len(acoef),3):
     print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
 bestfit = ares.get_yfit(ll_l,acoef)
-
-#plt.plot(ll_l,flux_l)
-#plt.plot(ll_l,init)
-#plt.plot(ll_l,bestfit,'k--')
-#plt.show()
-
 
 ew, error_ew, info_line = ares.getMedida_compile_ew_original(acoef, acoef_er, ll_l, flux_l, line, distline)
 #print(out.fit_report(min_correl=0.5))
