@@ -7,7 +7,7 @@ from numpy import sqrt, pi, exp, linspace, loadtxt
 from lmfit.models import GaussianModel
 import matplotlib.pyplot as plt
 from astropy.io import fits
-
+import time
 cimport numpy as np
 
 cdef extern from "areslib.h":
@@ -859,3 +859,97 @@ def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_
   #np.savetxt('test.out', (x,y)) 
 
   return ew, error_ew, info_line
+
+def tellme(s):
+    print(s)
+    plt.title(s, fontsize=16)
+    plt.draw()
+
+def get_medida_interactive(ll, flux, line, space, rejt, distline, rvmask):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(ll,flux)
+    ax.set_xlim(line-space, line+space)
+
+    tellme('Zoom in then hit SPACE!')
+    zoom_ok = False
+    while not zoom_ok:
+        zoom_ok = plt.waitforbuttonpress(timeout=-1)
+
+    while True:
+        pts = []
+        while len(pts) < 2:
+            tellme('Select left & right continuum points!')
+            pts = np.asarray(plt.ginput(2, timeout=-1))
+            if len(pts) < 2:
+                tellme('Too few points, starting over')
+                time.sleep(1)  # Wait a second
+        print(pts)
+        ax.plot(pts[:,0],pts[:,1],c='k')
+        tellme('SPACE to accept, Mouse click to repeat!')
+        if plt.waitforbuttonpress():
+            break
+    cont=pts
+
+    tellme("Mark the Gauss centers! Middle click/ENTER to accept!")
+    pts = np.asarray(plt.ginput(-1, timeout=-1))
+    print(pts)
+    ngauss = len(pts)
+
+    ax.scatter(pts[:,0],pts[:,1],marker='o')
+    gauss=pts
+
+    print("Cont:", cont)
+    print("Gauss:", gauss)
+
+    # normalize to line
+    x_coords = (cont[0][0],cont[1][0])
+    y_coords = (cont[0][1],cont[1][1])
+    A = np.vstack([x_coords,np.ones(len(x_coords))]).T 
+    m, c = np.linalg.lstsq(A, y_coords,rcond=None)[0]
+    fluxn = flux/(m*ll+c)
+
+    #Get local norm spec:
+    i1 = np.where(ll > cont[0,0])[0][0]
+    i2 = np.where(ll > cont[1,0])[0][0]
+    print(cont[0,0], ll[i1])
+    print(cont[1,0], ll[i2])
+
+    ll_l,flux_l = getMedida_local_spec(ll, fluxn, i1, i2)
+
+    #Original acoef
+    acoef = np.zeros(ngauss*3)
+    sigma_const = 400.
+    for i in range(ngauss):
+    # We may need to play a bit with the constrains
+        acoef[i*3 + 1] = sigma_const
+        acoef[i*3 + 2] = gauss[i][0]
+        ig = np.where(ll > gauss[i][0])[0][0]
+        acoef[i*3] = (fluxn[ig] - 1)
+    print(acoef)
+
+    sigma = flux_l*0+1-rejt
+    init = get_yfit(ll_l,acoef)
+
+    (acoef, acoef_er, status) = fitngausspy(ll_l, flux_l, sigma, acoef)
+    for i in np.arange(0,len(acoef),3):
+        print("::acoef[%2i]:  %.5f acoef[%2i]:  %9.5f acoef[%2i]:  %7.2f \n" %(i, acoef[i]+1., i+1, acoef[i+1], i+2, acoef[i+2]))
+    bestfit = get_yfit(ll_l,acoef)
+
+    ew, error_ew, info_line = getMedida_compile_ew_original(acoef, acoef_er, ll_l, flux_l, line, distline)
+    #print(out.fit_report(min_correl=0.5))
+    print ("-----------------------\n")
+    print ("line: %8.4f" % (line))
+    print ("EW: %8.4f" % (ew))
+    print ("Error EW: %8.4f" % (error_ew))
+    print ("-----------------------\n")
+
+    #show original spec with non normalized fit
+    plt.plot(ll_l, (init+1)*(m*ll_l+c), 'k--')
+    plt.plot(ll_l, (bestfit+1)*(m*ll_l+c), 'g-')
+    plt.axvline(line)
+    print(info_line)
+    tellme("Complete!! You may close the plot...")
+    plt.show()
+
+    return ew, error_ew, info_line
