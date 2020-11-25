@@ -945,8 +945,11 @@ def get_medida_interactive(ll, flux, line, space, rejt, distline, rvmask):
     print ("-----------------------\n")
 
     #show original spec with non normalized fit
-    plt.plot(ll_l, (init+1)*(m*ll_l+c), 'k--')
+    plt.plot(ll_l, (init+1)*(m*ll_l+c), '--', color='lightgrey')
     plt.plot(ll_l, (bestfit+1)*(m*ll_l+c), 'g-')
+    for i in np.arange(0,len(acoef),3):
+      gfit_i = get_yfit(ll_l, acoef[i:i+3])
+      plt.plot(ll_l, (gfit_i+1)*(m*ll_l+c), 'k--')
     plt.axvline(line)
     print(info_line)
     tellme("Complete!! You may close the plot...")
