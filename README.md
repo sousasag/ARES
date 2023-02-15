@@ -92,6 +92,10 @@ With the libraries installed from the repositories:
 If you have installed one library manually, an example for the case of CFITSIO, is the folloing:
 
     gcc -o ARES ARES_v2.c -L/usr/local/cfitsio/lib/ -I/usr/local/cfitsio/include/ -lcfitsio -lgsl -lgslcblas -lm -lgomp -fopenmp
+    
+Another example with multiple libraries in different places:
+
+    gcc-12 -o ARES ARES_v2.c -L/usr/local/Cellar/gsl/2.7.1/lib/ -I/usr/local/Cellar/gsl/2.7.1/include/ -L/usr/local/Cellar/cfitsio/4.2.0/lib/ -I/usr/local/Cellar/cfitsio/4.2.0/include/ -lcfitsio -lgsl -lgslcblas -lm -lgomp -fopenmp
 
 Note: -L and -I is the location of the libraries and the include files of the cfitsio package.
 
