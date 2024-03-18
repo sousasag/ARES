@@ -69,8 +69,12 @@ void write_outfile(char *fileout, double* aponta, int nl, int miniline){
     pFile2 = fopen (fileout,"wt");
     int ilinha;
     for (ilinha=0;ilinha<nl;ilinha++) {
-        if (aponta[ilinha*9+4] > miniline && aponta[ilinha*9+4] < 500. && aponta[ilinha*9+1] > 0)
-            fprintf(pFile2," %10.3f  %ld  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.2f\n", aponta[ilinha*9+0], (long) aponta[ilinha*9+1], aponta[ilinha*9+2], aponta[ilinha*9+3], aponta[ilinha*9+4], aponta[ilinha*9+8], aponta[ilinha*9+5], aponta[ilinha*9+6], aponta[ilinha*9+7]);
+        if (aponta[ilinha*12+4] > miniline && aponta[ilinha*12+4] < 500. && aponta[ilinha*12+1] > 0)
+            fprintf(pFile2," %10.3f  %ld  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.2f\n", aponta[ilinha*12+0], (long) aponta[ilinha*12+1], aponta[ilinha*12+2], aponta[ilinha*12+3], aponta[ilinha*12+4], aponta[ilinha*12+8], aponta[ilinha*12+5], aponta[ilinha*12+6], aponta[ilinha*12+7]);
+/*  Comment the previous line, and uncomment the next line 
+    if you want to output the errors for the gaussian coeficients 
+    for the fitted line*/
+//            fprintf(pFile2," %10.3f  %ld  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f  %10.5f\n", aponta[ilinha*12+0], (long) aponta[ilinha*12+1], aponta[ilinha*12+2], aponta[ilinha*12+3], aponta[ilinha*12+4], aponta[ilinha*12+8], aponta[ilinha*12+5], aponta[ilinha*12+6], aponta[ilinha*12+7], aponta[ilinha*12+9], aponta[ilinha*12+10], aponta[ilinha*12+11]);
 
     }
     fclose (pFile2);

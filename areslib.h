@@ -132,7 +132,7 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 int testflag = continuum_det5(x,y,ynorm,nx,res,rejt,plots_flag);
                 if (testflag == -1) {
                         printf("Problem with the normalization\n Ignoring this line\n");
-                        aponta[ilinha*9+4]=-1;
+                        aponta[ilinha*12+4]=-1;
                     //Escrever no ficheiro de Log:
                     pFile3 = fopen ("logARES.txt","a");
                     fprintf(pFile3,"%s%s",strLinhaInicial,"Problem with the normalization\n Ignoring this line\n");
@@ -378,16 +378,19 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
 
 
                 if (status2 == 0) {
-                    aponta[ilinha*9+0]=linha;
-                    aponta[ilinha*9+1]=ncenter;
-                    aponta[ilinha*9+2]=-acoef[3*hjl];
-                    aponta[ilinha*9+3]=2.*sqrt(log(2)/acoef[3*hjl+1]);
-                    aponta[ilinha*9+4]=medida;
-                    aponta[ilinha*9+5]=acoef[3*hjl];
-                    aponta[ilinha*9+6]=acoef[3*hjl+1];
-                    aponta[ilinha*9+7]=acoef[3*hjl+2];
-                    aponta[ilinha*9+8]=medida_er;
-                } else aponta[ilinha*9+4]=-1;
+                    aponta[ilinha*12+0]=linha;
+                    aponta[ilinha*12+1]=ncenter;
+                    aponta[ilinha*12+2]=-acoef[3*hjl];
+                    aponta[ilinha*12+3]=2.*sqrt(log(2)/acoef[3*hjl+1]);
+                    aponta[ilinha*12+4]=medida;
+                    aponta[ilinha*12+5]=acoef[3*hjl];
+                    aponta[ilinha*12+6]=acoef[3*hjl+1];
+                    aponta[ilinha*12+7]=acoef[3*hjl+2];
+                    aponta[ilinha*12+8]=medida_er;
+                    aponta[ilinha*12+9]=acoef_er[3*hjl];
+                    aponta[ilinha*12+10]=acoef_er[3*hjl+1];
+                    aponta[ilinha*12+11]=acoef_er[3*hjl+2];
+                } else aponta[ilinha*12+4]=-1;
 
                 //Escrever no ficheiro de Log:
                 pFile3 = fopen ("logARES.txt","a");
@@ -399,7 +402,7 @@ void getMedida(double * xpixels, double * pixels, long npoints, float linha, dou
                 pFile3 = fopen ("logARES.txt","a");
                 fprintf(pFile3,"%s%s",strLinhaInicial,"\n line not found\n");
                 fclose (pFile3);
-                aponta[ilinha*9+4]=-1;
+                aponta[ilinha*12+4]=-1;
             }
         *plots_flag2=plots_flag;
 

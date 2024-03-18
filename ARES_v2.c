@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
     fclose (pFile3);
 
 
-    double aponta[nl*9];
+    double aponta[nl*12];
 
     int nprocs=1;
     omp_set_num_threads( nprocs );
@@ -218,7 +218,7 @@ int main(int argc, char **argv) {
             }
             getMedida(xpixels, pixels, npoints, linha, space, rejtin, &plots_flag, smoothder, distlinha, pFile3, fgh, aponta, lambdai, lambdaf, CONT_FLAG, MAX_FIT_LINES);
 
-        } else aponta[fgh*9+4]=-1;
+        } else aponta[fgh*12+4]=-1;
     }
 
 //  Write of the result in the output file
