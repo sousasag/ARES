@@ -3,7 +3,7 @@ install:
 
 test:
 	./ARES > /dev/null
-	diff test.ares test.ares_ori
+	diff test.ares test.ares_oric
 
 clean:
 	rm -f ARES test.ares

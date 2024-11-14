@@ -14,6 +14,9 @@ extern "C" {
 
 #include <gsl/gsl_interp.h>
 
+
+#define CSPEED 2.99792458e5
+
 struct maskstruct{
     double center;
     double space;
@@ -70,7 +73,7 @@ void correct_lambda(double * lambda, int np, double vrad){
     //vrad in Km/s
     int i;
     for (i=0; i<np; i++){
-        lambda[i]=lambda[i]/(1+vrad/3.e5);
+        lambda[i]=lambda[i]/(1+vrad/CSPEED);
     }
 }
 
@@ -120,7 +123,7 @@ int get_local_rvo(double *lambda, double* flux, long np, double * mask, int nmas
                     ccfvel[i]=i*stepv+inivel;
                     int oo;
                     for (oo=0; oo < nlm; oo++)
-                        lambdaccfv[oo]=lambdaccfi[oo]*(1+ccfvel[i]/3.e5);
+                        lambdaccfv[oo]=lambdaccfi[oo]*(1+ccfvel[i]/CSPEED);
 
                     interpollin(lambda_loc,flux_loc_norm,lambdaccfv,lambdaflxv,nl,nlm);
                     ccfflx[i]=lambdaflxv[0]+lambdaflxv[1]+lambdaflxv[2];
@@ -185,7 +188,7 @@ int get_local_rv(double *lambda, double* flux, long np, struct maskstruct mask, 
                     ccfvel[i]=i*stepv+inivel;
                     int oo;
                     for (oo=0; oo < nlm; oo++)
-                        lambdaccfv[oo]=lambdaccfi[oo]*(1+ccfvel[i]/3.e5);
+                        lambdaccfv[oo]=lambdaccfi[oo]*(1+ccfvel[i]/CSPEED);
 
                     interpollin(lambda_loc,flux_loc_norm,lambdaccfv,lambdaflxv,nl,nlm);
                     ccfflx[i]=lambdaflxv[0]+lambdaflxv[1]+lambdaflxv[2];
@@ -200,10 +203,10 @@ int get_local_rv(double *lambda, double* flux, long np, struct maskstruct mask, 
                     }
             }
 
-//            plotxy(ccfvel, ccfflx, nccf, -400., 400.);
+//            plotxy(ccfvel, ccfflx, nccf, -400, 400);
 //            int pausav;
 //            scanf("%i", &pausav);
-//            printf("Velocidade radial: %f\n", vmin);
+            printf("Velocidade radial: %f\n", vmin);
             flag=1;
             *rvel=vmin;
     }
