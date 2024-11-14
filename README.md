@@ -1,14 +1,14 @@
 # ARES
 
-Root Webpage:
-www.astro.up.pt/~sousasag/ares
+<!--Root Webpage:
+www.astro.up.pt/~sousasag/ares-->
 
 
 ----------------------------------------------
 --               QUICK README               --
 ----------------------------------------------
 
-More information on www.astro.up.pt/~sousasag/ares
+<!--More information on www.astro.up.pt/~sousasag/ares-->
 
 How to use the code:
 
