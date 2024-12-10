@@ -1,4 +1,9 @@
+<p align="center">
+<img src="https://github.com/sousasag/ARES/blob/master/logo/ARES_LOGO_White_bkg.png" 
+     width="600" alt="Logo ARES">
+
 # ARES
+## Automatic Routine for line Equivalent widths in stellar Spectra
 
 <!--Root Webpage:
 www.astro.up.pt/~sousasag/ares-->
