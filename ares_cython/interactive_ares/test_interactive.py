@@ -45,7 +45,14 @@ def read_mine(mineopt):
 ### Main program:
 def main():
     specfits, readlinedat, fileout, space, rejt_str, distline, rvmask = read_mine("mine.opt")
-    ll, flux = read_spectra(specfits)
+    try:
+        ll, flux = read_spectra(specfits)
+    except:
+        ll, flux = np.loadtxt(specfits,unpack=True)
+        ll = np.array(ll, dtype = 'double')
+        flux = np.array(flux, dtype = 'double')
+
+
     ll = ares.correct_lambda_rvpy(ll.copy(), flux, rvmask) 
 
     rejt = ares.get_rejtpy(rejt_str, ll, flux)

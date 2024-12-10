@@ -134,7 +134,12 @@ def get_medida_interactive(ll, flux, line, space, rejt, distline, rvmask):
 ### Main program:
 def main():
     specfits, readlinedat, fileout, space, rejt_str, distline, rvmask = read_mine("mine.opt")
-    ll, flux = read_spectra(specfits)
+    try:
+        ll, flux = read_spectra(specfits)
+    except:
+        ll, flux = np.loadtxt(specfits,unpack=True)
+        ll = np.array(ll, dtype = 'double')
+        flux = np.array(flux, dtype = 'double')
     ll = ares.correct_lambda_rvpy(ll.copy(), flux, rvmask) 
 
     rejt = ares.get_rejtpy(rejt_str, ll, flux)
@@ -144,7 +149,22 @@ def main():
         print(lines)
         line = lines[0]
     else:
-        line = float(sys.argv[1])
+        if sys.argv[1] == "all":
+          lines = np.loadtxt(readlinedat, unpack=True, skiprows=2, usecols=(0,), ndmin=1)
+          s = 136
+          for i, line in enumerate(lines[s:]):
+            print("Measuring line: ", line, i+s, len(lines))
+            ew, error_ew, info_line = get_medida_interactive(ll, flux, line, space, rejt, distline, rvmask)
+            strline = "%8.3f   %d   %.5f   %.5f   %.5f   %.5f   %.5f   %.5f   %7.2f   %d\n" % info_line 
+            print(strline)
+            fileo = open(fileout, "a")
+            fileo.write(strline)
+            fileo.close()
+
+          return  
+        else:
+          line = float(sys.argv[1])
+
 
     print("Measuring line: ", line)
 

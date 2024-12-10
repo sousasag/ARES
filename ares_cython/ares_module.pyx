@@ -36,7 +36,7 @@ cdef extern from "sn_rejt_estimator.h":
 
 cdef extern from "rvcor.h":
   void correct_lambda(double* ll, int npoints, double vrad)
-  double get_rv(double *ll, double* flux, long npoints, char* rvmask)
+  double get_rv(double* ll, double* flux, long npoints, char* rvmask)
 
 
 # #---------------------------------------------------------------------
@@ -66,6 +66,7 @@ def correct_lambda_rvpy(np.ndarray[double, ndim=1, mode="c"] ll not None,
   rv = get_rv(<double *> np.PyArray_DATA(ll),
               <double *> np.PyArray_DATA(flux),
               ll.shape[0], rvmask.encode('utf-8'))
+  print(rvmask)
   print ("RV to correct: ", rv)
   correct_lambda(<double *> np.PyArray_DATA(ll), ll.shape[0], rv)
   return ll
@@ -372,6 +373,7 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
   y = flux[nx1test:nx2test].copy()
 
   ynorm,res = continuum_det5py(x,y,tree)
+  xnorm = x.copy()
   lc, ld, i1, i2 =  find_lines(x,ynorm, smoothder, line, tree, distline)
   if lc.shape[0] < 1:
     print(line, "line not found")
@@ -446,9 +448,10 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
 
       print ("-----------------------\n")
 
-      plt.plot(x, y)
-      plt.plot(x, init, 'k--')
-      plt.plot(x, out.best_fit, 'r-')
+      #plt.plot(x, y)
+      plt.plot(xnorm, ynorm)
+      plt.plot(x, init+1, 'k--')
+      plt.plot(x, out.best_fit+1, 'r-')
       plt.axvline(line)
       plt.show()
 

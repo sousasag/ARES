@@ -1,10 +1,10 @@
 specfits='../../sun_harps_ganymede.fits'
-readlinedat='linelist2.dat'
-fileout='test.ares'
+readlinedat='lines_FeIandFeII_kur_m2019.dat'
+fileout='sun.ares'
 lambdai=3600.
 lambdaf=9000.
-smoothder=4
-space=3.0
+smoothder=16
+space=5.0
 rejt=3;5764,5766,6047,6052,6068,6076
 lineresol=0.1
 miniline=2
