@@ -622,7 +622,7 @@ def getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline, plots_f
   error_ew = 0.
   news = 0
   line_is_found = 0
-  for i in range(0,len(acoef)/3):
+  for i in range(0,int(len(acoef)/3)):
     if abs(line - acoef[3*i+2]) < distline:
       ew+=acoef[3*i]*np.sqrt(np.pi/acoef[3*i+1])
       error_ew += ew*ew * (acoef_er[3*i]*acoef_er[3*i]/acoef[3*i]/acoef[3*i] + (0.5*0.5*acoef_er[3*i+1]*acoef_er[3*i+1]/acoef[3*i+1]/acoef[3*i+1]));
@@ -653,7 +653,7 @@ def getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline, plots_f
  
 
       bestfit = np.ones(x.shape)
-      for j in range(0,len(acoef)/3):
+      for j in range(0,int(len(acoef)/3)):
         bestfit += acoef[j*3]* np.exp (- acoef[j*3+1] * (x-acoef[j*3+2]) * (x-acoef[j*3+2]) )
 
 
@@ -662,7 +662,7 @@ def getMedida_compile_ew_original(acoef, acoef_er, x, y, line, distline, plots_f
       plt.axvline(line)
       plt.show()
 
-    ngauss = len(acoef)/3
+    ngauss = int(len(acoef)/3)
     info_line = (line, ngauss, line_depth, line_sigma, ew, error_ew, line_depth_f, line_sigma_f, line_center_f, news)
     return ew, error_ew, info_line
   else:
@@ -702,7 +702,7 @@ def getMedida_pyfit_sep_old(ll, flux, line, space, rejt, smoothder, distline, pl
 
 def get_yfit(x,acoef):
   yfit2=x*0
-  for j in range(len(acoef)/3):
+  for j in range(int(len(acoef)/3)):
     yfit2+=acoef[j*3]*np.exp(-acoef[j*3+1]*(x-acoef[j*3+2])**2.)
   return yfit2
 
