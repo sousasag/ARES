@@ -832,7 +832,7 @@ def getMedida_pyfit_sep(ll, flux, line, space, rejt, smoothder, distline, plots_
       xl = x[i1:i2]
       yl = ynorm[i1:i2] - 1
     else:
-      x,y = getMedida_local_spec(x, ynorm, i1, i2) 
+      xl,yl = getMedida_local_spec(x, ynorm, i1, i2) 
     gauss = yl*0+1-rejt
     init = get_yfit(xl,acoef)
     (acoef, acoef_er, status) = fitngausspy(xl, yl, gauss, acoef)
