@@ -5,3 +5,4 @@ plotdir
 .idea/
 tools/
 mine.opt_bck
+ares_cython/tests/test.png
