@@ -433,7 +433,7 @@ https://github.com/sousasag/ARES/blob/master/areslib_gsl1.h
 ### Problem finding "fitsio.h"
 
 In Fedora Core flavours it was reported a problem when finding the fitsio.h file in the system.
-A possible solution is to edit the areslib.h file and replace the line with #include "fitsio.h" 
+A possible solution is to edit the filesio.h file and replace the line with #include "fitsio.h" 
 by #include "cfitsio/fitsio.h"
 
 
