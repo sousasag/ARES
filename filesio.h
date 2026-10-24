@@ -3,7 +3,29 @@
  * Author: sousasag
  *
  * Created on April 23, 2011, 2:21 PM
- */
+  *
+ * Version 2 of filesio.h.  (Updated with help of opencode and deepseek free)
+ *
+ * The FITS reader (read_fits_file) now accepts, besides the standard
+ * image with WCS keywords (CDELT1/CRVAL1/CRPIX1), spectra stored in a
+ * FITS table:
+ *
+ *   - binary or ASCII table HDUs;
+ *   - wavelength columns (in order of priority):
+ *         WAVE_AIR -> WAVE -> WAVELENGTH
+ *   - flux columns (in order of priority):
+ *         FLUX_EL -> FLUX -> FLUX_CAL
+ *   - scalar columns (one row per pixel) and vector columns with a
+ *     single row (e.g. ESPRESSO: 1 row x 443262 elements);
+ *   - spectra stored in image extensions, not only in the primary HDU.
+ *
+ * Tables with more than one row and vector columns (one spectrum per
+ * row) are not supported and are rejected with an explicit message.
+ *
+ * The interface to the rest of ARES is unchanged: read_spectrum_file()
+ * still returns pixels2 = flux vector, xpixels2 = wavelength vector,
+ * npoints, cdelta1 and crval1.
+*/
 
 #ifndef _FILESIO_H
 #define	_FILESIO_H
@@ -13,6 +35,7 @@ extern "C" {
 #endif
 
 #include <string.h>
+#include <ctype.h>
 #include "fitsio.h"
 
     /* leitura das opcoes , mine.opt file read*/
@@ -202,66 +225,326 @@ void read_ascii_file(char * filetest, long* npoints, double** pixels2, double** 
     
 }
 
+
+/*
+ * Find the first existing column among the names in 'names'.
+ * Returns 1 and the column number on success, 0 otherwise.
+ */
+static int fits_find_column(fitsfile *fptr, const char *names[], int *colnum, const char **found){
+    int i, status = 0;
+    *colnum = 0;
+    *found = NULL;
+    for (i = 0; names[i] != NULL; i++) {
+        status = 0;
+        if (!fits_get_colnum(fptr, CASEINSEN, (char *) names[i], colnum, &status)
+                && *colnum > 0) {
+            *found = names[i];
+            return 1;
+        }
+        status = 0;
+    }
+    return 0;
+}
+
+
+/*
+ * Convert the wavelength unit stored in TUNIT to a scale factor that
+ * converts the column values to Angstroms.
+ */
+static void fits_wavelength_unit_scale(const char *tunit, double *scale){
+    char low[FLEN_VALUE];
+    int i;
+    *scale = 1.0;
+    if (tunit == NULL)
+        return;
+    for (i = 0; tunit[i] != '\0' && i < FLEN_VALUE - 1; i++)
+        low[i] = (char) tolower((unsigned char) tunit[i]);
+    low[i] = '\0';
+
+    if (strstr(low, "nanometer") != NULL || strstr(low, "nm") != NULL)
+        *scale = 10.0;
+    else if (strstr(low, "micron") != NULL || strstr(low, "\xc2\xb5m") != NULL)
+        *scale = 10000.0;
+    else if (strstr(low, "angstrom") != NULL || strstr(low, "\xc3\x85") != NULL)
+        *scale = 1.0;
+}
+
+
+/*
+ * Read a spectrum stored as a FITS image (1D or 2D) using the WCS
+ * keywords CDELT1, CRVAL1 and (optionally) CRPIX1.
+ * Returns 1 on success, 0 if the current HDU is not a suitable image.
+ */
+static int fits_read_image_hdu(fitsfile *fptr, long *npoints, double **pixels2, double **xpixels2, double *cdelta1, double *crval1){
+    int status = 0;
+    int bitpix = 0, naxis = 0;
+    long naxes[2] = {1, 1};
+    long fpixel[2] = {1, 1};
+    long ii;
+    double caga;
+    double crpix1 = 1.0;
+    double *pixels, *xpixels;
+
+    if (fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status) || status)
+        return 0;
+    if (naxis < 1 || naxis > 2)
+        return 0;
+
+    /* The WCS keywords must be readable, otherwise this is not a
+       standard image spectrum and the caller should try the table path. */
+    status = 0;
+    if (fits_read_key(fptr, TDOUBLE, "CDELT1", &caga, NULL, &status) || status)
+        return 0;
+    *cdelta1 = caga;
+
+    status = 0;
+    if (fits_read_key(fptr, TDOUBLE, "CRVAL1", &caga, NULL, &status) || status)
+        return 0;
+    *crval1 = caga;
+
+    status = 0;
+    if (fits_read_key(fptr, TDOUBLE, "CRPIX1", &crpix1, NULL, &status))
+        crpix1 = 1.0;
+    status = 0;
+
+    pixels = (double *) malloc(naxes[0] * sizeof(double));
+    xpixels = (double *) malloc(naxes[0] * sizeof(double));
+    if (pixels == NULL || xpixels == NULL) {
+            printf("Memory allocation error\n");
+            exit(1);
+    }
+
+    if (*crval1 < 2500){
+        printf("Assuming that input units are nanometers instead of Angstroms...\n");
+        *crval1 = *crval1 * 10.;
+        *cdelta1 = *cdelta1 * 10.;
+    }
+
+    /* Read the first row of the image (the previous implementation
+       ended up with this same row). */
+    fpixel[0] = 1;
+    fpixel[1] = 1;
+    if (fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], NULL, pixels, NULL, &status) || status) {
+        free(pixels);
+        free(xpixels);
+        return 0;
+    }
+
+    for (ii = 0; ii < naxes[0]; ii++)
+        xpixels[ii] = *crval1 + (ii + 1.0 - crpix1) * (*cdelta1);
+
+    *npoints = naxes[0];
+    *pixels2 = pixels;
+    *xpixels2 = xpixels;
+    return 1;
+}
+
+
+/*
+ * Read a spectrum stored in a FITS table.
+ *
+ * Supported layouts:
+ *   - scalar columns (one row per pixel): repeat == 1, npoints = nrows
+ *   - vector columns with a single row: nrows == 1, npoints = repeat
+ * Tables with several rows of vector columns are rejected.
+ *
+ * Returns 1 on success, 0 otherwise.
+ */
+static int fits_read_table_hdu(fitsfile *fptr, int hdu, long *npoints, double **pixels2, double **xpixels2, double *cdelta1, double *crval1){
+    const char *wave_names[] = {"WAVE_AIR", "WAVE", "WAVELENGTH", NULL};
+    const char *flux_names[] = {"FLUX_EL", "FLUX", "FLUX_CAL", NULL};
+    int status = 0;
+    int wcol = 0, fcol = 0;
+    const char *wcolname = NULL, *fcolname = NULL;
+    int typecode = 0, anynul = 0;
+    long nrows = 0, repeat_w = 0, repeat_f = 0, width = 0;
+    long nw = 0, nf = 0, ii;
+    double *wavel = NULL, *flux = NULL;
+    double nulval = 0.0;
+    double sumdw = 0.0;
+    double wscale = 1.0;
+    int has_unit = 0;
+    long nonmono = 0;
+    char tunit[FLEN_VALUE] = "";
+    char colkey[FLEN_KEYWORD];
+
+    if (fits_get_num_rows(fptr, &nrows, &status) || status || nrows < 1) {
+        status = 0;
+        return 0;
+    }
+
+    if (!fits_find_column(fptr, wave_names, &wcol, &wcolname))
+        return 0;
+    if (!fits_find_column(fptr, flux_names, &fcol, &fcolname))
+        return 0;
+
+    status = 0;
+    if (fits_get_coltype(fptr, wcol, &typecode, &repeat_w, &width, &status) || status) {
+        status = 0;
+        return 0;
+    }
+    status = 0;
+    if (fits_get_coltype(fptr, fcol, &typecode, &repeat_f, &width, &status) || status) {
+        status = 0;
+        return 0;
+    }
+
+    /* Number of elements of the wavelength column. */
+    if (repeat_w == 1)
+        nw = nrows;
+    else if (nrows == 1)
+        nw = repeat_w;
+    else {
+        printf("Error: FITS table in HDU %d has %ld rows of vector columns (repeat = %ld).\n",
+               hdu, nrows, repeat_w);
+        printf("Only one row of vector columns or scalar columns (one row per pixel) are supported.\n");
+        return 0;
+    }
+
+    /* Number of elements of the flux column. */
+    if (repeat_f == 1)
+        nf = nrows;
+    else if (nrows == 1)
+        nf = repeat_f;
+    else {
+        printf("Error: FITS table in HDU %d has %ld rows of vector columns (repeat = %ld).\n",
+               hdu, nrows, repeat_f);
+        printf("Only one row of vector columns or scalar columns (one row per pixel) are supported.\n");
+        return 0;
+    }
+
+    if (nw != nf || nw < 2) {
+        printf("Error: incompatible wavelength/flux columns in FITS table HDU %d (%ld vs %ld elements).\n",
+               hdu, nw, nf);
+        return 0;
+    }
+
+    wavel = (double *) malloc(nw * sizeof(double));
+    flux = (double *) malloc(nw * sizeof(double));
+    if (wavel == NULL || flux == NULL) {
+        printf("Memory allocation error\n");
+        exit(1);
+    }
+
+    status = 0;
+    if (fits_read_col(fptr, TDOUBLE, wcol, 1, 1, nw, &nulval, wavel, &anynul, &status) || status) {
+        printf("Error: unable to read wavelength column from FITS table HDU %d.\n", hdu);
+        status = 0;
+        free(wavel);
+        free(flux);
+        return 0;
+    }
+
+    status = 0;
+    if (fits_read_col(fptr, TDOUBLE, fcol, 1, 1, nw, &nulval, flux, &anynul, &status) || status) {
+        printf("Error: unable to read flux column from FITS table HDU %d.\n", hdu);
+        status = 0;
+        free(wavel);
+        free(flux);
+        return 0;
+    }
+
+    /* Wavelength units: use TUNITn when available, otherwise fall back
+       to the historical heuristic (values below 2500 are probably nm). */
+    sprintf(colkey, "TUNIT%d", wcol);
+    status = 0;
+    if (!fits_read_key(fptr, TSTRING, colkey, tunit, NULL, &status)) {
+        for (ii = 0; tunit[ii] != '\0'; ii++) {
+            if (isalnum((unsigned char) tunit[ii])) {
+                has_unit = 1;
+                break;
+            }
+        }
+    }
+    status = 0;
+
+    if (has_unit) {
+        fits_wavelength_unit_scale(tunit, &wscale);
+        if (wscale != 1.0)
+            for (ii = 0; ii < nw; ii++)
+                wavel[ii] *= wscale;
+    } else if (wavel[0] < 2500.) {
+        printf("Assuming that input units are nanometers instead of Angstroms...\n");
+        for (ii = 0; ii < nw; ii++)
+            wavel[ii] *= 10.;
+    }
+
+    for (ii = 1; ii < nw; ii++) {
+        if (wavel[ii] <= wavel[ii-1])
+            nonmono++;
+        sumdw += wavel[ii] - wavel[ii-1];
+    }
+    if (nonmono)
+        printf("Warning: wavelength column is not strictly increasing (%ld non-increasing steps).\n", nonmono);
+
+    printf("FITS table found in HDU %d: wavelength column '%s', flux column '%s'\n",
+           hdu, wcolname != NULL ? wcolname : "?", fcolname != NULL ? fcolname : "?");
+
+    *npoints = nw;
+    *xpixels2 = wavel;
+    *pixels2 = flux;
+    *crval1 = wavel[0];
+    *cdelta1 = sumdw / (nw - 1);
+    printf("FITS table spectrum: %ld points, wavelength range [%.4f, %.4f] Angstrom, mean step %.6g Angstrom\n",
+           *npoints, wavel[0], wavel[nw-1], *cdelta1);
+    return 1;
+}
+
+
 void read_fits_file(char * filetest, long* npoints, double** pixels2, double** xpixels2, double* cdelta1, double* crval1){
     printf("READING FITS FILE: %s \n", filetest);
-    long naxes[2] = {1,1}, fpixel[2] = {1,1};
-    int bitpix, naxis, ii;
-    char format[20], hdformat[20];
-    double *pixels, *xpixels;
-    double caga;
-    int status = 0;/* CFITSIO status value MUST be initialized to zero! */
-    fitsfile *fptr;   /* FITS file pointer, defined in fitsio.h */
-    char card[FLEN_CARD];   /* Standard string lengths defined in fitsio.h */
-    if (!fits_open_file(&fptr, filetest, READONLY, &status)) {
-        printf("Ficheiro Aberto...");
-            if (!fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status) ) {
-                if (naxis > 2 || naxis == 0)
-                    printf("Error: only 1D or 2D images are supported\n");
-                else {
-                    /* get memory for 1 row */
-                    pixels = (double *) malloc(naxes[0] * sizeof(double));
-                    xpixels = (double *) malloc(naxes[0] * sizeof(double));
-                    *pixels2=pixels;
-                    *xpixels2=xpixels;
-                    if (pixels == NULL || xpixels == NULL) {
-                            printf("Memory allocation error\n");
-                            exit(1);
-                    }
+    int status = 0;
+    int ok = 0;
+    int hdu, nhdus = 0, hdutype = 0;
+    fitsfile *fptr = NULL;
 
-                    if (bitpix > 0) {  /* set the default output format string */
-                           strcpy(hdformat, " %7d");
-                           strcpy(format,   " %7.0f");
-                    } else {
-                        strcpy(hdformat, " %15d");
-                        strcpy(format,   " %15.5f");
-                    }
-
-                    printf("Lendo ficheiro...\n");          /* print column header */
-                    status=fits_read_key(fptr, TDOUBLE, "CDELT1", &caga, card, &status);
-                    *cdelta1=caga;
-                    status=fits_read_key(fptr, TDOUBLE, "CRVAL1", &caga, card, &status);
-                    *crval1=caga;
-                    *npoints=naxes[0];
-                    if (*crval1 < 2500){
-                        printf("Assuming that input units are nanometers instead of Angstroms...\n");
-                        *crval1 = *crval1 * 10.;
-                        *cdelta1 = *cdelta1 * 10.;
-                    }
-
-                    for (fpixel[1] = naxes[1]; fpixel[1] >= 1; fpixel[1]--) {
-                        if (fits_read_pix(fptr, TDOUBLE, fpixel, naxes[0], NULL, pixels, NULL, &status) )  /* read row of pixels */
-                            break;  /* jump out of loop on error */
-                        for (ii = 0; ii < naxes[0]; ii++)
-                            xpixels[ii]= (double)(ii * (*cdelta1) + (*crval1));
-                    }
-                }
-            }
-          fits_close_file(fptr, &status);
+    if (fits_open_file(&fptr, filetest, READONLY, &status) || status) {
+        fits_report_error(stderr, status);
+        fflush(stdout);
+        fprintf(stderr, "Error: unable to open FITS file '%s'.\n", filetest);
+        exit(1);
     }
-    if (status) fits_report_error(stderr, status); /* print any error message */
+    printf("Ficheiro Aberto...\n");
 
+    /* First, the classical case: a 1D/2D image with WCS keywords in the
+       current (primary) HDU. */
+    ok = fits_read_image_hdu(fptr, npoints, pixels2, xpixels2, cdelta1, crval1);
 
+    /* If that failed, scan every HDU looking for a table with
+       wavelength/flux columns, or for an image spectrum in an
+       extension. */
+    if (!ok) {
+        status = 0;
+        if (!fits_get_num_hdus(fptr, &nhdus, &status) && !status) {
+            for (hdu = 1; hdu <= nhdus && !ok; hdu++) {
+                status = 0;
+                if (fits_movabs_hdu(fptr, hdu, &hdutype, &status) || status) {
+                    status = 0;
+                    continue;
+                }
+                if (hdutype == BINARY_TBL || hdutype == ASCII_TBL) {
+                    ok = fits_read_table_hdu(fptr, hdu, npoints, pixels2, xpixels2, cdelta1, crval1);
+                } else if (hdutype == IMAGE_HDU) {
+                    ok = fits_read_image_hdu(fptr, npoints, pixels2, xpixels2, cdelta1, crval1);
+                }
+                status = 0;
+            }
+        }
+        status = 0;
+    }
+
+    fits_close_file(fptr, &status);
+
+    if (!ok) {
+        fflush(stdout);
+        fprintf(stderr, "Error: no spectrum found in FITS file '%s'.\n", filetest);
+        fprintf(stderr, "Supported formats: 1D/2D image with CDELT1/CRVAL1 WCS, or a table with\n");
+        fprintf(stderr, "wavelength (WAVE_AIR/WAVE/WAVELENGTH) and flux (FLUX_EL/FLUX/FLUX_CAL) columns.\n");
+        exit(1);
+    }
 }
+
+
 
 void read_mine(char * mine, char* filetest, char* fileleitura, char* fileout, double* lambdai, double* lambdaf, double* smoothder, double* space, char* tree, double* distlinha, double* miniline, int* plots_flag, char* rvmask) {
 

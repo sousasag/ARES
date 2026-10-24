@@ -417,7 +417,7 @@ def getMedida_pyfit(ll, flux, line, space, rejt, smoothder, distline, plots_flag
   error_ew = 0.
   news = 0
   line_is_found = 0
-  for i in range(0,len(out.params)/5):
+  for i in range(0,len(out.params)//5):
     pref = "g%02i_" % (i)
     if abs(line - values[pref+'center']) < distline:
       ew+=values[pref+'amplitude']*1000*-1
@@ -568,7 +568,7 @@ def getMedida_compile_ew(out, x, y, init, line, distline, plots_flag = False):
   news = 0
   line_is_found = 0
 #  for i in range(0,len(out.params)/nparam_gauss):
-  for i in range(0,len(out.params)/5):
+  for i in range(0,len(out.params)//5):
     pref = "g%02i_" % (i)
     if abs(line - values[pref+'center']) < distline:
       ew+=values[pref+'amplitude']*1000*-1
